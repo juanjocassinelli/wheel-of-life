@@ -13,6 +13,7 @@
     --bg: #0e0e10;
     --surface: #18181b;
     --surface2: #27272a;
+    --surface3: #1e1e21;
     --border: rgba(255,255,255,0.08);
     --text: #f4f4f5;
     --muted: #71717a;
@@ -47,14 +48,14 @@
 
   .layout {
     width: 100%;
-    max-width: 860px;
+    max-width: 960px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
     align-items: start;
   }
 
-  @media (max-width: 640px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .layout { grid-template-columns: 1fr; } }
 
   .panel {
     background: var(--surface);
@@ -72,10 +73,9 @@
     margin-bottom: 1.25rem;
   }
 
-  /* ── Chart side ── */
+  /* Chart side */
   .chart-side { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-
-  .chart-wrap { position: relative; width: 100%; height: 270px; }
+  .chart-wrap { position: relative; width: 100%; height: 300px; }
 
   .avg-num {
     font-family: 'DM Serif Display', serif;
@@ -83,7 +83,6 @@
     font-weight: 400;
     line-height: 1;
   }
-
   .avg-lbl {
     font-size: 0.7rem;
     color: var(--muted);
@@ -93,46 +92,52 @@
     text-align: center;
   }
 
-  .legend {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .leg { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--muted); }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  .leg {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.72rem;
+  /* Description box */
+  .desc-box {
+    width: 100%;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    min-height: 72px;
+    transition: opacity 0.2s;
+  }
+  .desc-box-title {
+    font-size: 0.78rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+  .desc-box-text {
+    font-size: 0.75rem;
     color: var(--muted);
+    line-height: 1.55;
+  }
+  .desc-box-hint {
+    font-size: 0.72rem;
+    color: #3f3f46;
+    font-style: italic;
   }
 
-  .leg-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  /* ── Sliders side ── */
-  .sliders-side { display: flex; flex-direction: column; gap: 0.75rem; }
+  /* Sliders side */
+  .sliders-side { display: flex; flex-direction: column; gap: 0.6rem; }
 
   .sl-row {
     background: var(--surface2);
     border-radius: 10px;
-    padding: 10px 14px 12px;
+    padding: 9px 14px 11px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
   }
+  .sl-row:hover { border-color: rgba(255,255,255,0.1); }
+  .sl-row.active { border-color: rgba(167,139,250,0.35); }
 
-  .sl-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .sl-name { font-size: 0.82rem; font-weight: 500; color: var(--text); }
-
+  .sl-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+  .sl-name { font-size: 0.82rem; font-weight: 500; color: var(--text); user-select: none; }
   .sl-val { font-size: 0.9rem; font-weight: 500; min-width: 18px; text-align: right; }
 
   input[type="range"] {
@@ -144,8 +149,8 @@
     outline: none;
     cursor: pointer;
     background: rgba(255,255,255,0.1);
+    display: block;
   }
-
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -156,7 +161,6 @@
     border: 2px solid var(--bg);
     transition: transform 0.15s;
   }
-
   input[type="range"]::-moz-range-thumb {
     width: 18px;
     height: 18px;
@@ -164,20 +168,18 @@
     cursor: pointer;
     border: 2px solid var(--bg);
   }
-
   input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
 
-  /* ── Actions ── */
+  /* Actions */
   .actions {
     width: 100%;
-    max-width: 860px;
+    max-width: 960px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 0.9rem;
     margin-top: 1.25rem;
   }
-
-  @media (max-width: 640px) { .actions { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .actions { grid-template-columns: 1fr; } }
 
   .btn {
     font-family: 'DM Sans', sans-serif;
@@ -189,13 +191,10 @@
     border: 1px solid var(--border);
     transition: all 0.18s;
   }
-
   .btn-ghost { background: var(--surface); color: var(--muted); }
   .btn-ghost:hover { background: var(--surface2); color: var(--text); }
-
   .btn-purple { background: #7c5ff0; color: #fff; border-color: transparent; }
   .btn-purple:hover { background: #6d50e0; transform: translateY(-1px); }
-
   .btn-outline { background: transparent; color: #a78bfa; border-color: #a78bfa55; }
   .btn-outline:hover { background: #1e1640; transform: translateY(-1px); }
 
@@ -211,12 +210,12 @@
 
 <div class="layout">
 
-  <!-- Left: chart -->
+  <!-- Left: chart + description -->
   <div class="panel chart-side">
     <div class="panel-label">Your wheel</div>
     <div class="chart-wrap"><canvas id="wChart"></canvas></div>
     <div>
-      <div class="avg-num" id="avgNum" style="color:#eab308">5.0</div>
+      <div class="avg-num" id="avgNum">5.0</div>
       <div class="avg-lbl">overall average</div>
     </div>
     <div class="legend">
@@ -224,29 +223,32 @@
       <span class="leg"><span class="leg-dot" style="background:#eab308"></span>Growing 4–6</span>
       <span class="leg"><span class="leg-dot" style="background:#22c55e"></span>Thriving 7–10</span>
     </div>
+    <div class="desc-box" id="descBox">
+      <div class="desc-box-text desc-box-hint">Click on any area to read its description.</div>
+    </div>
   </div>
 
-  <!-- Right: sliders — hardcoded HTML, no JS generation -->
+  <!-- Right: sliders (all hardcoded) -->
   <div class="panel sliders-side">
     <div class="panel-label">Your ratings</div>
 
-    <div class="sl-row">
+    <div class="sl-row" id="row0" onclick="showDesc(0)">
       <div class="sl-top">
-        <span class="sl-name">Finances</span>
+        <span class="sl-name">Finance</span>
         <span class="sl-val" id="v0" style="color:#eab308">5</span>
       </div>
       <input type="range" min="0" max="10" step="1" value="5" id="s0" oninput="upd(0,this.value)">
     </div>
 
-    <div class="sl-row">
+    <div class="sl-row" id="row1" onclick="showDesc(1)">
       <div class="sl-top">
-        <span class="sl-name">Work / Academic</span>
+        <span class="sl-name">Personal Growth</span>
         <span class="sl-val" id="v1" style="color:#eab308">5</span>
       </div>
       <input type="range" min="0" max="10" step="1" value="5" id="s1" oninput="upd(1,this.value)">
     </div>
 
-    <div class="sl-row">
+    <div class="sl-row" id="row2" onclick="showDesc(2)">
       <div class="sl-top">
         <span class="sl-name">Health</span>
         <span class="sl-val" id="v2" style="color:#eab308">5</span>
@@ -254,28 +256,44 @@
       <input type="range" min="0" max="10" step="1" value="5" id="s2" oninput="upd(2,this.value)">
     </div>
 
-    <div class="sl-row">
+    <div class="sl-row" id="row3" onclick="showDesc(3)">
       <div class="sl-top">
-        <span class="sl-name">Romance</span>
+        <span class="sl-name">Family</span>
         <span class="sl-val" id="v3" style="color:#eab308">5</span>
       </div>
       <input type="range" min="0" max="10" step="1" value="5" id="s3" oninput="upd(3,this.value)">
     </div>
 
-    <div class="sl-row">
+    <div class="sl-row" id="row4" onclick="showDesc(4)">
       <div class="sl-top">
-        <span class="sl-name">Friendship</span>
+        <span class="sl-name">Relationships</span>
         <span class="sl-val" id="v4" style="color:#eab308">5</span>
       </div>
       <input type="range" min="0" max="10" step="1" value="5" id="s4" oninput="upd(4,this.value)">
     </div>
 
-    <div class="sl-row">
+    <div class="sl-row" id="row5" onclick="showDesc(5)">
       <div class="sl-top">
-        <span class="sl-name">Personal development</span>
+        <span class="sl-name">Social Life</span>
         <span class="sl-val" id="v5" style="color:#eab308">5</span>
       </div>
       <input type="range" min="0" max="10" step="1" value="5" id="s5" oninput="upd(5,this.value)">
+    </div>
+
+    <div class="sl-row" id="row6" onclick="showDesc(6)">
+      <div class="sl-top">
+        <span class="sl-name">Attitude</span>
+        <span class="sl-val" id="v6" style="color:#eab308">5</span>
+      </div>
+      <input type="range" min="0" max="10" step="1" value="5" id="s6" oninput="upd(6,this.value)">
+    </div>
+
+    <div class="sl-row" id="row7" onclick="showDesc(7)">
+      <div class="sl-top">
+        <span class="sl-name">Career</span>
+        <span class="sl-val" id="v7" style="color:#eab308">5</span>
+      </div>
+      <input type="range" min="0" max="10" step="1" value="5" id="s7" oninput="upd(7,this.value)">
     </div>
 
   </div>
@@ -287,19 +305,61 @@
   <button class="btn btn-outline" onclick="doSubmit()">Submit &rarr;</button>
 </div>
 
-<footer>Drag the sliders &mdash; your wheel updates in real time</footer>
+<footer>Click any area to read its description &mdash; drag sliders to update your wheel</footer>
 
 <script>
 const TALLY_FORM_ID = 'YOUR_TALLY_FORM_ID';
 
-const LABELS = ['Finances','Work / Academic','Health','Romance','Friendship','Personal development'];
-const KEYS   = ['finances','work','health','romance','friendship','personal'];
-const vals   = [5,5,5,5,5,5];
+const AREAS = [
+  {
+    key: 'finance',
+    label: 'Finance',
+    desc: 'This is not about how much you have, but how you relate to money. A 10 means you are completely at ease with your finances — you manage them confidently and they bring you peace of mind. A 1 means financial worry is creating serious stress and limiting your decisions every day. Some people with very little score high here; some with plenty score low.'
+  },
+  {
+    key: 'personal_growth',
+    label: 'Personal Growth',
+    desc: 'Truly successful people commit to lifelong learning and self-improvement. Are you actively seeking new experiences, reading to expand your mind, and open to stretching your limits? A 10 means growth is a daily practice for you. The fact that you are completing this exercise already puts you above a 1 or 2.'
+  },
+  {
+    key: 'health',
+    label: 'Health',
+    desc: 'We tend to take health for granted until it fails us. Are you eating well, exercising regularly, and taking care of your body and mind? Having a long-term condition does not automatically mean a low score — what matters most is whether you are doing everything within your control to improve or maintain your wellbeing.'
+  },
+  {
+    key: 'family',
+    label: 'Family',
+    desc: 'Family life can be deeply rewarding and deeply challenging at the same time — from the sleepless nights of early parenthood to the tension of teenage years or extended family dynamics. Whatever family means to you (a nuclear unit, a chosen family, or a wider network), rate how fulfilled and supported you feel in those relationships right now.'
+  },
+  {
+    key: 'relationships',
+    label: 'Relationships',
+    desc: 'Think about the key relationship in your life — a partner, close friend, or significant other. How would you rate its quality right now? A 10 is a relationship full of trust, joy, and mutual growth. A 1 is one that is painful, stagnant, or absent. Be honest about where it truly is, not just where you wish it were.'
+  },
+  {
+    key: 'social_life',
+    label: 'Social Life',
+    desc: 'How rich and fulfilling is your social world? This is not just about frequency — it is about how comfortably and genuinely you connect with people. Some thrive at every gathering; others find social situations draining or anxiety-inducing. Consider both the quality of your connections and how confident you feel in social settings.'
+  },
+  {
+    key: 'attitude',
+    label: 'Attitude',
+    desc: 'Your attitude shapes everything. Is your glass half full or half empty? A 10 means you naturally focus on possibilities, find solutions when things go wrong, and approach life with optimism and resilience. A low score means negativity and pessimism are patterns that are holding you back and affecting every other area of your life.'
+  },
+  {
+    key: 'career',
+    label: 'Career',
+    desc: 'We spend a huge portion of our lives working — so how does yours feel? A 10 means you are energised, purposeful, and would almost do your job for free. A 1 means you dread Monday mornings. If you are not currently working, rate how clear and motivated you feel about what you want to do and the steps you are taking to get there.'
+  }
+];
+
+const vals = [5,5,5,5,5,5,5,5];
+let activeDesc = -1;
 
 function sc(v) {
   v = Math.max(0, Math.min(10, +v));
   if (v <= 5) {
-    const t = v / 5;
+    const t = v/5;
     return 'rgb('+Math.round(239+(234-239)*t)+','+Math.round(68+(179-68)*t)+','+Math.round(68+(8-68)*t)+')';
   }
   const t = (v-5)/5;
@@ -308,21 +368,28 @@ function sc(v) {
 
 function paintSlider(i, color) {
   const sl = document.getElementById('s'+i);
-  const pct = (vals[i] / 10) * 100;
+  const pct = (vals[i]/10)*100;
   sl.style.background = 'linear-gradient(to right,'+color+' 0%,'+color+' '+pct+'%,rgba(255,255,255,0.1) '+pct+'%,rgba(255,255,255,0.1) 100%)';
-
-  const existing = document.getElementById('sthumb'+i);
-  if (existing) existing.remove();
+  const ex = document.getElementById('sth'+i);
+  if (ex) ex.remove();
   const s = document.createElement('style');
-  s.id = 'sthumb'+i;
+  s.id = 'sth'+i;
   s.textContent = '#s'+i+'::-webkit-slider-thumb{background:'+color+';box-shadow:0 0 7px '+color+'99}#s'+i+'::-moz-range-thumb{background:'+color+'}';
   document.head.appendChild(s);
+}
+
+function showDesc(i) {
+  activeDesc = i;
+  document.querySelectorAll('.sl-row').forEach((r,j) => r.classList.toggle('active', j===i));
+  const box = document.getElementById('descBox');
+  const color = sc(vals[i]);
+  box.innerHTML = '<div class="desc-box-title" style="color:'+color+'">'+AREAS[i].label+'</div><div class="desc-box-text">'+AREAS[i].desc+'</div>';
 }
 
 const chart = new Chart(document.getElementById('wChart').getContext('2d'), {
   type: 'radar',
   data: {
-    labels: LABELS,
+    labels: AREAS.map(a => a.label),
     datasets: [{
       data: [...vals],
       backgroundColor: 'rgba(124,95,240,0.12)',
@@ -345,8 +412,8 @@ const chart = new Chart(document.getElementById('wChart').getContext('2d'), {
       angleLines: { color: 'rgba(255,255,255,0.07)' },
       pointLabels: {
         color: '#a1a1aa',
-        font: { size: 11, family: 'DM Sans', weight: '500' },
-        padding: 10
+        font: { size: 10, family: 'DM Sans', weight: '500' },
+        padding: 8
       }
     }},
     animation: { duration: 160 }
@@ -374,15 +441,16 @@ function upd(i, val) {
   paintSlider(i, c);
   refreshChart();
   refreshAvg();
+  if (activeDesc === i) showDesc(i);
 }
 
 function doReset() {
-  for (let i=0; i<6; i++) {
-    vals[i] = 5;
-    document.getElementById('s'+i).value = 5;
-    document.getElementById('v'+i).textContent = 5;
-    document.getElementById('v'+i).style.color = sc(5);
-    paintSlider(i, sc(5));
+  for (let i=0;i<8;i++) {
+    vals[i]=5;
+    document.getElementById('s'+i).value=5;
+    document.getElementById('v'+i).textContent=5;
+    document.getElementById('v'+i).style.color=sc(5);
+    paintSlider(i,sc(5));
   }
   refreshChart();
   refreshAvg();
@@ -391,13 +459,12 @@ function doReset() {
 function doDownload() {
   const src = document.getElementById('wChart');
   const off = document.createElement('canvas');
-  off.width = src.width * 2;
-  off.height = src.height * 2;
+  off.width = src.width*2; off.height = src.height*2;
   const oc = off.getContext('2d');
-  oc.scale(2, 2);
+  oc.scale(2,2);
   oc.fillStyle = '#0e0e10';
-  oc.fillRect(0, 0, src.width, src.height);
-  oc.drawImage(src, 0, 0, src.width, src.height);
+  oc.fillRect(0,0,src.width,src.height);
+  oc.drawImage(src,0,0,src.width,src.height);
   const a = document.createElement('a');
   a.download = 'wheel-of-life.png';
   a.href = off.toDataURL('image/png');
@@ -410,12 +477,12 @@ function doSubmit() {
     return;
   }
   const p = new URLSearchParams();
-  KEYS.forEach((k,i) => p.set(k, vals[i]));
+  AREAS.forEach((a,i) => p.set(a.key, vals[i]));
   window.open('https://tally.so/r/'+TALLY_FORM_ID+'?'+p.toString(), '_blank');
 }
 
-// Init paint on load
-for (let i=0; i<6; i++) paintSlider(i, sc(5));
+for (let i=0;i<8;i++) paintSlider(i, sc(5));
+document.getElementById('avgNum').style.color = sc(5);
 </script>
 </body>
 </html>
