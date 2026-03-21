@@ -386,7 +386,7 @@ const LANGS = {
     footer:      'Hecho con amor por Juanjo &amp; Vanessa &#10084;',
     pdfAvg:      'PROMEDIO GENERAL',
     pdfArea:     'ÁREA',
-    pdfScore:    'PUNTUACIÓN',
+    pdfScore:    'PUNTOS',
     pdfRating:   'NIVEL',
     pdfFooter:   'Hecho con amor por Juanjo & Vanessa',
     areas: [
@@ -681,7 +681,7 @@ function doDownloadPDF() {
 
   /* Table */
   let y=177;
-  const rowH=10, barMaxW=contentW*0.42, labelW=46, scoreW=10;
+  const rowH=10, barMaxW=contentW*0.38, labelW=52, scoreW=10;
   const barX=margin+labelW+scoreW+2;
 
   doc.setFontSize(7.5); doc.setTextColor(...mutedColor);
