@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,15 +10,45 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #0e0e10;
-    --surface: #18181b;
-    --surface2: #27272a;
-    --surface3: #1e1e21;
-    --border: rgba(255,255,255,0.08);
-    --text: #f4f4f5;
-    --muted: #71717a;
-    --radius: 14px;
+  /* ── Theme tokens ── */
+  [data-theme="dark"] {
+    --bg:        #0e0e10;
+    --surface:   #18181b;
+    --surface2:  #27272a;
+    --surface3:  #1e1e21;
+    --border:    rgba(255,255,255,0.08);
+    --border2:   rgba(255,255,255,0.13);
+    --text:      #f4f4f5;
+    --muted:     #71717a;
+    --hint:      #3f3f46;
+    --rowbg:     #1f1f28;
+    --h1from:    #f4f4f5;
+    --h1to:      #a78bfa;
+    --chart-grid: rgba(255,255,255,0.07);
+    --chart-label:#a1a1aa;
+    --avg-label: #71717a;
+    --toggle-bg: #27272a;
+    --toggle-icon: "☀️";
+  }
+
+  [data-theme="light"] {
+    --bg:        #f8f7f4;
+    --surface:   #ffffff;
+    --surface2:  #f1f0ed;
+    --surface3:  #f5f4f1;
+    --border:    rgba(0,0,0,0.08);
+    --border2:   rgba(0,0,0,0.14);
+    --text:      #18181b;
+    --muted:     #71717a;
+    --hint:      #a1a1aa;
+    --rowbg:     #eeecf8;
+    --h1from:    #18181b;
+    --h1to:      #6d4ef0;
+    --chart-grid: rgba(0,0,0,0.07);
+    --chart-label:#52525b;
+    --avg-label: #71717a;
+    --toggle-bg: #e4e4e7;
+    --toggle-icon: "🌙";
   }
 
   body {
@@ -30,14 +60,26 @@
     flex-direction: column;
     align-items: center;
     padding: 2rem 1rem 3rem;
+    transition: background 0.3s, color 0.3s;
   }
 
-  header { text-align: center; margin-bottom: 2rem; }
+  /* ── Header ── */
+  .header-row {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    margin-bottom: 2rem;
+  }
+
+  header { text-align: center; }
   header h1 {
     font-family: 'DM Serif Display', serif;
     font-size: clamp(1.8rem, 5vw, 3rem);
     font-weight: 400;
-    background: linear-gradient(135deg, #f4f4f5 30%, #a78bfa);
+    background: linear-gradient(135deg, var(--h1from) 30%, var(--h1to));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -45,7 +87,32 @@
   }
   header p { color: var(--muted); font-size: 0.9rem; font-weight: 300; }
 
-  /* ── Desktop: two-column grid ── */
+  /* Theme toggle */
+  .theme-toggle {
+    position: absolute;
+    right: 0;
+    top: 4px;
+    background: var(--toggle-bg);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: background 0.2s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .theme-toggle:hover { transform: scale(1.08); }
+  .theme-toggle .toggle-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  /* ── Layout ── */
   .layout {
     width: 100%;
     max-width: 960px;
@@ -56,37 +123,25 @@
     align-items: start;
   }
 
-  /* Desktop layout positions */
   .chart-panel   { grid-column: 1; grid-row: 1; }
   .sliders-panel { grid-column: 2; grid-row: 1; }
-  /* Description spans full width below on desktop */
-  .desc-wrap-desktop {
-    grid-column: 1 / 3;
-    grid-row: 2;
-    display: block;
-  }
-  /* Mobile description inside slider panel — hidden on desktop */
-  .desc-wrap-mobile { display: none; }
+  .desc-wrap-desktop { grid-column: 1 / 3; grid-row: 2; display: block; }
+  .desc-wrap-mobile  { display: none; }
 
   @media (max-width: 700px) {
-    .layout {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto;
-    }
-    /* Mobile order: sliders → chart */
-    .sliders-panel { grid-column: 1; grid-row: 1; }
-    .chart-panel   { grid-column: 1; grid-row: 2; }
-    /* Hide desktop description row */
+    .layout { grid-template-columns: 1fr; grid-template-rows: auto; }
+    .sliders-panel     { grid-column: 1; grid-row: 1; }
+    .chart-panel       { grid-column: 1; grid-row: 2; }
     .desc-wrap-desktop { display: none; }
-    /* Show mobile description inside sliders panel */
-    .desc-wrap-mobile { display: block; margin-top: 0.75rem; }
+    .desc-wrap-mobile  { display: block; margin-top: 0.75rem; }
   }
 
   .panel {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 14px;
     padding: 1.5rem;
+    transition: background 0.3s, border-color 0.3s;
   }
 
   .panel-label {
@@ -100,7 +155,7 @@
 
   /* Chart panel */
   .chart-panel { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-  .chart-wrap { position: relative; width: 100%; height: 280px; }
+  .chart-wrap  { position: relative; width: 100%; height: 280px; }
 
   .avg-num {
     font-family: 'DM Serif Display', serif;
@@ -108,25 +163,32 @@
     font-weight: 400;
     line-height: 1;
   }
-  .avg-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px; text-align: center; }
+  .avg-lbl {
+    font-size: 0.7rem;
+    color: var(--avg-label);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 3px;
+    text-align: center;
+  }
 
   .legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .leg { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--muted); }
   .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  /* Description box — shared styles */
+  /* Description box */
   .desc-box {
     background: var(--surface3);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 14px;
     padding: 1rem 1.25rem;
     min-height: 68px;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background 0.3s;
   }
-  .desc-box.has-content { border-color: rgba(167,139,250,0.3); }
+  .desc-box.has-content { border-color: rgba(124,95,240,0.35); }
   .desc-box-title { font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; }
-  .desc-box-text { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
-  .desc-box-hint { font-size: 0.78rem; color: #3f3f46; font-style: italic; }
+  .desc-box-text  { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+  .desc-box-hint  { font-size: 0.78rem; color: var(--hint); font-style: italic; }
 
   /* Sliders */
   .sliders-panel { display: flex; flex-direction: column; gap: 0.6rem; }
@@ -137,15 +199,15 @@
     padding: 9px 14px 11px;
     cursor: pointer;
     border: 1px solid transparent;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, background 0.3s;
     user-select: none;
   }
-  .sl-row:hover { border-color: rgba(255,255,255,0.1); }
-  .sl-row.active { border-color: rgba(167,139,250,0.4); background: #1f1f28; }
+  .sl-row:hover { border-color: var(--border2); }
+  .sl-row.active { border-color: rgba(124,95,240,0.45); background: var(--rowbg); }
 
   .sl-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
   .sl-name { font-size: 0.82rem; font-weight: 500; color: var(--text); }
-  .sl-val { font-size: 0.9rem; font-weight: 500; min-width: 18px; text-align: right; }
+  .sl-val  { font-size: 0.9rem; font-weight: 500; min-width: 18px; text-align: right; }
 
   input[type="range"] {
     -webkit-appearance: none;
@@ -155,7 +217,6 @@
     border-radius: 3px;
     outline: none;
     cursor: pointer;
-    background: rgba(255,255,255,0.1);
     display: block;
   }
   input[type="range"]::-webkit-slider-thumb {
@@ -191,25 +252,31 @@
     font-size: 0.9rem;
     font-weight: 500;
     padding: 0.85rem 1rem;
-    border-radius: var(--radius);
+    border-radius: 14px;
     cursor: pointer;
     border: 1px solid var(--border);
     transition: all 0.18s;
   }
-  .btn-ghost { background: var(--surface); color: var(--muted); }
+  .btn-ghost  { background: var(--surface); color: var(--muted); }
   .btn-ghost:hover { background: var(--surface2); color: var(--text); }
   .btn-purple { background: #7c5ff0; color: #fff; border-color: transparent; }
   .btn-purple:hover { background: #6d50e0; transform: translateY(-1px); }
 
-  footer { margin-top: 2rem; font-size: 0.75rem; color: #52525b; text-align: center; }
+  footer { margin-top: 2rem; font-size: 0.75rem; color: var(--hint); text-align: center; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Wheel of Life</h1>
-  <p>Rate each area of your life from 0 to 10</p>
-</header>
+<div class="header-row">
+  <header>
+    <h1>Wheel of Life</h1>
+    <p>Rate each area of your life from 0 to 10</p>
+  </header>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme">
+    <span id="themeIcon">☀️</span>
+    <span class="toggle-label" id="themeLabel">Light</span>
+  </button>
+</div>
 
 <div class="layout">
 
@@ -228,7 +295,7 @@
     </div>
   </div>
 
-  <!-- Sliders + mobile description inside -->
+  <!-- Sliders -->
   <div class="panel sliders-panel">
     <div class="panel-label">Your ratings</div>
 
@@ -265,7 +332,7 @@
       <input type="range" min="0" max="10" step="1" value="5" id="s7" oninput="upd(7,this.value)">
     </div>
 
-    <!-- Description lives INSIDE slider panel on mobile, shown via CSS -->
+    <!-- Description inside slider panel — mobile only -->
     <div class="desc-wrap-mobile">
       <div class="desc-box" id="descBoxMobile">
         <div class="desc-box-hint">Tap any area above to read its description.</div>
@@ -273,7 +340,7 @@
     </div>
   </div>
 
-  <!-- Description full-width below on desktop -->
+  <!-- Description full-width below — desktop only -->
   <div class="desc-wrap-desktop">
     <div class="desc-box" id="descBoxDesktop">
       <div class="desc-box-hint">Click any area above to read its description.</div>
@@ -291,19 +358,45 @@
 
 <script>
 const AREAS = [
-  { key: 'finance',        label: 'Finance',         desc: 'This is not about how much you have, but how you relate to money. A 10 means you are completely at ease with your finances — you manage them confidently and they bring you peace of mind. A 1 means financial worry is creating serious stress and limiting your decisions every day. Some people with very little score high here; some with plenty score low.' },
-  { key: 'personal_growth',label: 'Personal Growth', desc: 'Truly successful people commit to lifelong learning and self-improvement. Are you actively seeking new experiences, reading to expand your mind, and open to stretching your limits? A 10 means growth is a daily practice for you. The fact that you are completing this exercise already puts you above a 1 or 2.' },
-  { key: 'health',         label: 'Health',           desc: 'We tend to take health for granted until it fails us. Are you eating well, exercising regularly, and taking care of your body and mind? Having a long-term condition does not automatically mean a low score — what matters most is whether you are doing everything within your control to improve or maintain your wellbeing.' },
-  { key: 'family',         label: 'Family',           desc: 'Family life can be deeply rewarding and deeply challenging at the same time — from the sleepless nights of early parenthood to the tension of teenage years or extended family dynamics. Whatever family means to you, rate how fulfilled and supported you feel in those relationships right now.' },
-  { key: 'relationships',  label: 'Relationships',    desc: 'Think about the key relationship in your life — a partner, close friend, or significant other. How would you rate its quality right now? A 10 is a relationship full of trust, joy, and mutual growth. A 1 is one that is painful, stagnant, or absent. Be honest about where it truly is, not just where you wish it were.' },
-  { key: 'social_life',    label: 'Social Life',      desc: 'How rich and fulfilling is your social world? This is not just about frequency — it is about how comfortably and genuinely you connect with people. Some thrive at every gathering; others find social situations draining or anxiety-inducing. Consider both the quality of your connections and how confident you feel in social settings.' },
-  { key: 'attitude',       label: 'Attitude',         desc: 'Your attitude shapes everything. Is your glass half full or half empty? A 10 means you naturally focus on possibilities, find solutions when things go wrong, and approach life with optimism and resilience. A low score means negativity and pessimism are patterns that are holding you back and affecting every other area of your life.' },
-  { key: 'career',         label: 'Career',           desc: 'We spend a huge portion of our lives working — so how does yours feel? A 10 means you are energised, purposeful, and would almost do your job for free. A 1 means you dread Monday mornings. If you are not currently working, rate how clear and motivated you feel about what you want to do and the steps you are taking to get there.' }
+  { key:'finance',        label:'Finance',         desc:'This is not about how much you have, but how you relate to money. A 10 means you are completely at ease with your finances — you manage them confidently and they bring you peace of mind. A 1 means financial worry is creating serious stress and limiting your decisions every day. Some people with very little score high here; some with plenty score low.' },
+  { key:'personal_growth',label:'Personal Growth', desc:'Truly successful people commit to lifelong learning and self-improvement. Are you actively seeking new experiences, reading to expand your mind, and open to stretching your limits? A 10 means growth is a daily practice for you. The fact that you are completing this exercise already puts you above a 1 or 2.' },
+  { key:'health',         label:'Health',           desc:'We tend to take health for granted until it fails us. Are you eating well, exercising regularly, and taking care of your body and mind? Having a long-term condition does not automatically mean a low score — what matters most is whether you are doing everything within your control to improve or maintain your wellbeing.' },
+  { key:'family',         label:'Family',           desc:'Family life can be deeply rewarding and deeply challenging at the same time — from the sleepless nights of early parenthood to the tension of teenage years or extended family dynamics. Whatever family means to you, rate how fulfilled and supported you feel in those relationships right now.' },
+  { key:'relationships',  label:'Relationships',    desc:'Think about the key relationship in your life — a partner, close friend, or significant other. How would you rate its quality right now? A 10 is a relationship full of trust, joy, and mutual growth. A 1 is one that is painful, stagnant, or absent. Be honest about where it truly is, not just where you wish it were.' },
+  { key:'social_life',    label:'Social Life',      desc:'How rich and fulfilling is your social world? This is not just about frequency — it is about how comfortably and genuinely you connect with people. Some thrive at every gathering; others find social situations draining. Consider both the quality of your connections and how confident you feel in social settings.' },
+  { key:'attitude',       label:'Attitude',         desc:'Your attitude shapes everything. Is your glass half full or half empty? A 10 means you naturally focus on possibilities, find solutions when things go wrong, and approach life with optimism and resilience. A low score means negativity and pessimism are patterns that are holding you back and affecting every other area of your life.' },
+  { key:'career',         label:'Career',           desc:'We spend a huge portion of our lives working — so how does yours feel? A 10 means you are energised, purposeful, and would almost do your job for free. A 1 means you dread Monday mornings. If you are not currently working, rate how clear and motivated you feel about what you want to do and the steps you are taking to get there.' }
 ];
 
 const vals = [5,5,5,5,5,5,5,5];
 let activeDesc = -1;
+let isDark = true;
 
+/* ── Theme ── */
+function toggleTheme() {
+  isDark = !isDark;
+  const theme = isDark ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeIcon').textContent  = isDark ? '☀️' : '🌙';
+  document.getElementById('themeLabel').textContent = isDark ? 'Light' : 'Dark';
+  updateChartTheme();
+  repaintAllSliders();
+}
+
+function getComputedToken(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function updateChartTheme() {
+  const gridColor  = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const labelColor = isDark ? '#a1a1aa' : '#52525b';
+  chart.options.scales.r.grid.color       = gridColor;
+  chart.options.scales.r.angleLines.color = gridColor;
+  chart.options.scales.r.pointLabels.color = labelColor;
+  chart.update();
+}
+
+/* ── Stoplight colour ── */
 function sc(v) {
   v = Math.max(0, Math.min(10, +v));
   if (v <= 5) {
@@ -324,18 +417,26 @@ function scRGB(v) {
   return [Math.round(234+(34-234)*t), Math.round(179+(197-179)*t), Math.round(8+(94-8)*t)];
 }
 
+/* ── Slider painting ── */
 function paintSlider(i, color) {
-  const sl = document.getElementById('s'+i);
+  const sl  = document.getElementById('s'+i);
   const pct = (vals[i]/10)*100;
-  sl.style.background = 'linear-gradient(to right,'+color+' 0%,'+color+' '+pct+'%,rgba(255,255,255,0.1) '+pct+'%,rgba(255,255,255,0.1) 100%)';
+  const trackEmpty = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  sl.style.background = 'linear-gradient(to right,'+color+' 0%,'+color+' '+pct+'%,'+trackEmpty+' '+pct+'%,'+trackEmpty+' 100%)';
   const ex = document.getElementById('sth'+i);
   if (ex) ex.remove();
   const s = document.createElement('style');
   s.id = 'sth'+i;
-  s.textContent = '#s'+i+'::-webkit-slider-thumb{background:'+color+';box-shadow:0 0 8px '+color+'99}#s'+i+'::-moz-range-thumb{background:'+color+'}';
+  const bgVar = isDark ? '#0e0e10' : '#f8f7f4';
+  s.textContent = '#s'+i+'::-webkit-slider-thumb{background:'+color+';box-shadow:0 0 8px '+color+'99;border-color:'+bgVar+'}#s'+i+'::-moz-range-thumb{background:'+color+';border-color:'+bgVar+'}';
   document.head.appendChild(s);
 }
 
+function repaintAllSliders() {
+  for (let i=0;i<8;i++) paintSlider(i, sc(vals[i]));
+}
+
+/* ── Description ── */
 function setDescContent(box, i) {
   box.classList.add('has-content');
   box.innerHTML = '<div class="desc-box-title" style="color:'+sc(vals[i])+'">'+AREAS[i].label+'</div><div class="desc-box-text">'+AREAS[i].desc+'</div>';
@@ -345,9 +446,10 @@ function showDesc(i) {
   activeDesc = i;
   document.querySelectorAll('.sl-row').forEach((r,j) => r.classList.toggle('active', j===i));
   setDescContent(document.getElementById('descBoxDesktop'), i);
-  setDescContent(document.getElementById('descBoxMobile'), i);
+  setDescContent(document.getElementById('descBoxMobile'),  i);
 }
 
+/* ── Chart ── */
 const chart = new Chart(document.getElementById('wChart').getContext('2d'), {
   type: 'radar',
   data: {
@@ -370,8 +472,8 @@ const chart = new Chart(document.getElementById('wChart').getContext('2d'), {
     scales: { r: {
       min: 0, max: 10,
       ticks: { display: false },
-      grid: { color: 'rgba(255,255,255,0.07)' },
-      angleLines: { color: 'rgba(255,255,255,0.07)' },
+      grid:        { color: 'rgba(255,255,255,0.07)' },
+      angleLines:  { color: 'rgba(255,255,255,0.07)' },
       pointLabels: { color: '#a1a1aa', font: { size: 10, family: 'DM Sans', weight: '500' }, padding: 8 }
     }},
     animation: { duration: 160 }
@@ -386,22 +488,24 @@ function refreshChart() {
 
 function refreshAvg() {
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
-  const el = document.getElementById('avgNum');
+  const el  = document.getElementById('avgNum');
   el.textContent = avg.toFixed(1);
-  el.style.color = sc(avg);
+  el.style.color  = sc(avg);
 }
 
+/* ── Main update — always shows description ── */
 function upd(i, val) {
   vals[i] = parseInt(val);
   const c = sc(vals[i]);
   document.getElementById('v'+i).textContent = vals[i];
-  document.getElementById('v'+i).style.color = c;
+  document.getElementById('v'+i).style.color  = c;
   paintSlider(i, c);
   refreshChart();
   refreshAvg();
-  if (activeDesc === i) showDesc(i);
+  showDesc(i);   /* always show description when slider moves */
 }
 
+/* ── Reset ── */
 function doReset() {
   for (let i=0;i<8;i++) {
     vals[i]=5;
@@ -421,135 +525,92 @@ function doReset() {
   });
 }
 
+/* ── PDF ── */
 function doDownloadPDF() {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const pageW = 210;
-  const margin = 18;
-  const contentW = pageW - margin * 2;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const pageW = 210, margin = 18, contentW = pageW - margin*2;
 
-  /* Dark background */
-  doc.setFillColor(14, 14, 16);
-  doc.rect(0, 0, 210, 297, 'F');
+  doc.setFillColor(14,14,16);
+  doc.rect(0,0,210,297,'F');
 
-  /* Title */
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('helvetica','bold');
   doc.setFontSize(24);
-  doc.setTextColor(244, 244, 245);
-  doc.text('Wheel of Life', pageW/2, 22, { align: 'center' });
+  doc.setTextColor(244,244,245);
+  doc.text('Wheel of Life', pageW/2, 22, { align:'center' });
 
-  /* Date */
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('helvetica','normal');
   doc.setFontSize(9);
-  doc.setTextColor(113, 113, 122);
+  doc.setTextColor(113,113,122);
   const now = new Date();
-  doc.text(now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }), pageW/2, 29, { align: 'center' });
+  doc.text(now.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}), pageW/2, 29, {align:'center'});
 
-  /* Chart: capture at native size, preserve square aspect ratio */
   const srcCanvas = document.getElementById('wChart');
-  const cw = srcCanvas.width;
-  const ch = srcCanvas.height;
-
-  /* Draw onto a properly-sized square off-screen canvas */
+  const cw = srcCanvas.width, ch = srcCanvas.height;
   const side = Math.max(cw, ch);
   const off = document.createElement('canvas');
-  off.width = side * 2;
-  off.height = side * 2;
+  off.width = side*2; off.height = side*2;
   const oc = off.getContext('2d');
-  oc.scale(2, 2);
-  oc.fillStyle = '#0e0e10';
-  oc.fillRect(0, 0, side, side);
-  /* Centre the chart within the square canvas */
-  const ox = (side - cw) / 2;
-  const oy = (side - ch) / 2;
-  oc.drawImage(srcCanvas, ox, oy, cw, ch);
-
+  oc.scale(2,2);
+  oc.fillStyle='#0e0e10';
+  oc.fillRect(0,0,side,side);
+  oc.drawImage(srcCanvas,(side-cw)/2,(side-ch)/2,cw,ch);
   const imgData = off.toDataURL('image/png');
-  /* Place as square in PDF */
   const pdfImgSize = 120;
-  doc.addImage(imgData, 'PNG', (pageW - pdfImgSize) / 2, 33, pdfImgSize, pdfImgSize);
+  doc.addImage(imgData,'PNG',(pageW-pdfImgSize)/2, 33, pdfImgSize, pdfImgSize);
 
-  /* Average score */
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
   const [ar,ag,ab] = scRGB(avg);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('helvetica','bold');
   doc.setFontSize(20);
-  doc.setTextColor(ar, ag, ab);
-  doc.text(avg.toFixed(1), pageW/2, 162, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(ar,ag,ab);
+  doc.text(avg.toFixed(1), pageW/2, 162, {align:'center'});
+  doc.setFont('helvetica','normal');
   doc.setFontSize(8);
-  doc.setTextColor(113, 113, 122);
-  doc.text('OVERALL AVERAGE', pageW/2, 167, { align: 'center' });
+  doc.setTextColor(113,113,122);
+  doc.text('OVERALL AVERAGE', pageW/2, 167, {align:'center'});
 
-  /* Scores table */
   let y = 177;
-  const rowH = 10;
-  const barMaxW = contentW * 0.42;
-  const labelW = 44;
-  const scoreW = 10;
+  const rowH = 10, barMaxW = contentW*0.42, labelW = 44, scoreW = 10;
   const barX = margin + labelW + scoreW + 2;
 
   doc.setFontSize(7.5);
-  doc.setTextColor(113, 113, 122);
+  doc.setTextColor(113,113,122);
   doc.text('AREA', margin, y);
-  doc.text('SCORE', margin + labelW, y);
+  doc.text('SCORE', margin+labelW, y);
   doc.text('RATING', barX, y);
-
   y += 3;
   doc.setLineWidth(0.3);
-  doc.setDrawColor(50, 50, 55);
-  doc.line(margin, y, margin + contentW, y);
+  doc.setDrawColor(50,50,55);
+  doc.line(margin, y, margin+contentW, y);
   y += 5;
 
-  AREAS.forEach((area, i) => {
+  AREAS.forEach((area,i) => {
     const v = vals[i];
     const [r,g,b] = scRGB(v);
-
-    if (i % 2 === 0) {
-      doc.setFillColor(28, 28, 32);
-      doc.roundedRect(margin-2, y-4, contentW+4, rowH, 2, 2, 'F');
-    }
-
-    /* Label */
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(210, 210, 215);
+    if (i%2===0) { doc.setFillColor(28,28,32); doc.roundedRect(margin-2,y-4,contentW+4,rowH,2,2,'F'); }
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(210,210,215);
     doc.text(area.label, margin, y+1.5);
-
-    /* Score */
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(r, g, b);
-    doc.text(String(v), margin + labelW, y+1.5);
-
-    /* Bar track */
-    doc.setFillColor(45, 45, 50);
-    doc.roundedRect(barX, y-2.5, barMaxW, 5, 1.5, 1.5, 'F');
-
-    /* Bar fill */
-    if (v > 0) {
-      doc.setFillColor(r, g, b);
-      doc.roundedRect(barX, y-2.5, (v/10)*barMaxW, 5, 1.5, 1.5, 'F');
-    }
-
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(r,g,b);
+    doc.text(String(v), margin+labelW, y+1.5);
+    doc.setFillColor(45,45,50); doc.roundedRect(barX,y-2.5,barMaxW,5,1.5,1.5,'F');
+    if (v>0) { doc.setFillColor(r,g,b); doc.roundedRect(barX,y-2.5,(v/10)*barMaxW,5,1.5,1.5,'F'); }
     y += rowH;
   });
 
-  /* Footer */
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('helvetica','normal');
   doc.setFontSize(8);
-  doc.setTextColor(63, 63, 70);
-  doc.text('Made with love by Juanjo & Vanessa', pageW/2, 286, { align: 'center' });
-
+  doc.setTextColor(63,63,70);
+  doc.text('Made with love by Juanjo & Vanessa', pageW/2, 286, {align:'center'});
   doc.save('wheel-of-life.pdf');
 }
 
-/* Init */
+/* ── Init ── */
 for (let i=0;i<8;i++) {
-  paintSlider(i, sc(5));
-  document.getElementById('v'+i).style.color = sc(5);
+  paintSlider(i,sc(5));
+  document.getElementById('v'+i).style.color=sc(5);
 }
-document.getElementById('avgNum').style.color = sc(5);
+document.getElementById('avgNum').style.color=sc(5);
 </script>
 </body>
 </html>
