@@ -45,23 +45,42 @@
   }
   header p { color: var(--muted); font-size: 0.9rem; font-weight: 300; }
 
+  /* ── Desktop: two-column grid ── */
   .layout {
     width: 100%;
     max-width: 960px;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
     gap: 1.25rem;
     align-items: start;
   }
 
-  .chart-panel { order: 2; }
-  .sliders-panel { order: 1; }
-
-  @media (min-width: 701px) {
-    .chart-panel { order: 1; }
-    .sliders-panel { order: 2; }
+  /* Desktop layout positions */
+  .chart-panel   { grid-column: 1; grid-row: 1; }
+  .sliders-panel { grid-column: 2; grid-row: 1; }
+  /* Description spans full width below on desktop */
+  .desc-wrap-desktop {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    display: block;
   }
-  @media (max-width: 700px) { .layout { grid-template-columns: 1fr; } }
+  /* Mobile description inside slider panel — hidden on desktop */
+  .desc-wrap-mobile { display: none; }
+
+  @media (max-width: 700px) {
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+    }
+    /* Mobile order: sliders → chart */
+    .sliders-panel { grid-column: 1; grid-row: 1; }
+    .chart-panel   { grid-column: 1; grid-row: 2; }
+    /* Hide desktop description row */
+    .desc-wrap-desktop { display: none; }
+    /* Show mobile description inside sliders panel */
+    .desc-wrap-mobile { display: block; margin-top: 0.75rem; }
+  }
 
   .panel {
     background: var(--surface);
@@ -79,6 +98,7 @@
     margin-bottom: 1.25rem;
   }
 
+  /* Chart panel */
   .chart-panel { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
   .chart-wrap { position: relative; width: 100%; height: 280px; }
 
@@ -94,13 +114,13 @@
   .leg { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--muted); }
   .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  .desc-wrap { width: 100%; max-width: 960px; margin-top: 1.25rem; }
+  /* Description box — shared styles */
   .desc-box {
     background: var(--surface3);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1rem 1.25rem;
-    min-height: 72px;
+    min-height: 68px;
     transition: border-color 0.2s;
   }
   .desc-box.has-content { border-color: rgba(167,139,250,0.3); }
@@ -108,6 +128,7 @@
   .desc-box-text { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
   .desc-box-hint { font-size: 0.78rem; color: #3f3f46; font-style: italic; }
 
+  /* Sliders */
   .sliders-panel { display: flex; flex-direction: column; gap: 0.6rem; }
 
   .sl-row {
@@ -140,8 +161,7 @@
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 20px; height: 20px;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid var(--bg);
@@ -155,11 +175,12 @@
   }
   input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
 
+  /* Actions */
   .actions {
     width: 100%;
     max-width: 960px;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 0.9rem;
     margin-top: 1.25rem;
   }
@@ -179,91 +200,8 @@
   .btn-ghost:hover { background: var(--surface2); color: var(--text); }
   .btn-purple { background: #7c5ff0; color: #fff; border-color: transparent; }
   .btn-purple:hover { background: #6d50e0; transform: translateY(-1px); }
-  .btn-teal { background: #0f766e; color: #ccfbf1; border-color: transparent; }
-  .btn-teal:hover { background: #0d6460; transform: translateY(-1px); }
 
   footer { margin-top: 2rem; font-size: 0.75rem; color: #52525b; text-align: center; }
-
-  /* ── Send Modal ── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: #1c1c20;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 18px;
-    padding: 2rem;
-    width: 100%;
-    max-width: 420px;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .modal-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.4rem;
-    font-weight: 400;
-    color: var(--text);
-  }
-  .modal-sub { font-size: 0.82rem; color: var(--muted); line-height: 1.55; margin-top: -0.5rem; }
-
-  .modal-field { display: flex; flex-direction: column; gap: 6px; }
-  .modal-field label { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
-  .modal-field input[type="email"] {
-    background: var(--surface2);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.15s;
-    width: 100%;
-  }
-  .modal-field input[type="email"]:focus { border-color: #7c5ff0; }
-  .modal-field input[type="email"]::placeholder { color: #3f3f46; }
-
-  .modal-steps {
-    background: var(--surface2);
-    border-radius: 10px;
-    padding: 0.9rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .modal-step { display: flex; align-items: flex-start; gap: 8px; font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
-  .step-num {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #7c5ff044;
-    color: #a78bfa;
-    font-size: 0.68rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-  .modal-cancel { background: transparent; color: var(--muted); border: 1px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; padding: 0.75rem; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
-  .modal-cancel:hover { background: var(--surface2); color: var(--text); }
-  .modal-confirm { background: #7c5ff0; color: #fff; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; padding: 0.75rem; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
-  .modal-confirm:hover { background: #6d50e0; }
 </style>
 </head>
 <body>
@@ -274,6 +212,8 @@
 </header>
 
 <div class="layout">
+
+  <!-- Chart -->
   <div class="panel chart-panel">
     <div class="panel-label">Your wheel</div>
     <div class="chart-wrap"><canvas id="wChart"></canvas></div>
@@ -288,6 +228,7 @@
     </div>
   </div>
 
+  <!-- Sliders + mobile description inside -->
   <div class="panel sliders-panel">
     <div class="panel-label">Your ratings</div>
 
@@ -323,61 +264,41 @@
       <div class="sl-top"><span class="sl-name">Career</span><span class="sl-val" id="v7">5</span></div>
       <input type="range" min="0" max="10" step="1" value="5" id="s7" oninput="upd(7,this.value)">
     </div>
-  </div>
-</div>
 
-<div class="desc-wrap">
-  <div class="desc-box" id="descBox">
-    <div class="desc-box-hint">Tap any area above to read its description.</div>
+    <!-- Description lives INSIDE slider panel on mobile, shown via CSS -->
+    <div class="desc-wrap-mobile">
+      <div class="desc-box" id="descBoxMobile">
+        <div class="desc-box-hint">Tap any area above to read its description.</div>
+      </div>
+    </div>
   </div>
+
+  <!-- Description full-width below on desktop -->
+  <div class="desc-wrap-desktop">
+    <div class="desc-box" id="descBoxDesktop">
+      <div class="desc-box-hint">Click any area above to read its description.</div>
+    </div>
+  </div>
+
 </div>
 
 <div class="actions">
   <button class="btn btn-ghost" onclick="doReset()">&#8635; Reset</button>
-  <button class="btn btn-purple" onclick="doDownload()">Download image &darr;</button>
-  <button class="btn btn-teal" onclick="openSendModal()">Send results &#9993;</button>
+  <button class="btn btn-purple" onclick="doDownloadPDF()">Download PDF &darr;</button>
 </div>
 
 <footer>Made with love by Juanjo &amp; Vanessa &#10084;</footer>
 
-<!-- Send Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeSendModal(event)">
-  <div class="modal">
-    <div>
-      <div class="modal-title">Send your results</div>
-      <div class="modal-sub">Your Wheel of Life will be saved as a PDF — wheel chart and scores included — ready to share.</div>
-    </div>
-
-    <div class="modal-field">
-      <label>Recipient email address</label>
-      <input type="email" id="emailInput" placeholder="you@example.com">
-    </div>
-
-    <div class="modal-steps">
-      <div class="modal-step"><span class="step-num">1</span>Click <strong style="color:var(--text)">Generate &amp; send</strong> — your PDF will download automatically.</div>
-      <div class="modal-step"><span class="step-num">2</span>Your email app will open with the recipient and subject pre-filled.</div>
-      <div class="modal-step"><span class="step-num">3</span>Attach the downloaded PDF and hit send.</div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeSendModal()">Cancel</button>
-      <button class="modal-confirm" onclick="generateAndSend()">Generate &amp; send</button>
-    </div>
-  </div>
-</div>
-
 <script>
-const TALLY_FORM_ID = 'jaxjRE';
-
 const AREAS = [
-  { key: 'finance', label: 'Finance', desc: 'This is not about how much you have, but how you relate to money. A 10 means you are completely at ease with your finances — you manage them confidently and they bring you peace of mind. A 1 means financial worry is creating serious stress and limiting your decisions every day. Some people with very little score high here; some with plenty score low.' },
-  { key: 'personal_growth', label: 'Personal Growth', desc: 'Truly successful people commit to lifelong learning and self-improvement. Are you actively seeking new experiences, reading to expand your mind, and open to stretching your limits? A 10 means growth is a daily practice for you. The fact that you are completing this exercise already puts you above a 1 or 2.' },
-  { key: 'health', label: 'Health', desc: 'We tend to take health for granted until it fails us. Are you eating well, exercising regularly, and taking care of your body and mind? Having a long-term condition does not automatically mean a low score — what matters most is whether you are doing everything within your control to improve or maintain your wellbeing.' },
-  { key: 'family', label: 'Family', desc: 'Family life can be deeply rewarding and deeply challenging at the same time — from the sleepless nights of early parenthood to the tension of teenage years or extended family dynamics. Whatever family means to you (a nuclear unit, a chosen family, or a wider network), rate how fulfilled and supported you feel in those relationships right now.' },
-  { key: 'relationships', label: 'Relationships', desc: 'Think about the key relationship in your life — a partner, close friend, or significant other. How would you rate its quality right now? A 10 is a relationship full of trust, joy, and mutual growth. A 1 is one that is painful, stagnant, or absent. Be honest about where it truly is, not just where you wish it were.' },
-  { key: 'social_life', label: 'Social Life', desc: 'How rich and fulfilling is your social world? This is not just about frequency — it is about how comfortably and genuinely you connect with people. Some thrive at every gathering; others find social situations draining or anxiety-inducing. Consider both the quality of your connections and how confident you feel in social settings.' },
-  { key: 'attitude', label: 'Attitude', desc: 'Your attitude shapes everything. Is your glass half full or half empty? A 10 means you naturally focus on possibilities, find solutions when things go wrong, and approach life with optimism and resilience. A low score means negativity and pessimism are patterns that are holding you back and affecting every other area of your life.' },
-  { key: 'career', label: 'Career', desc: 'We spend a huge portion of our lives working — so how does yours feel? A 10 means you are energised, purposeful, and would almost do your job for free. A 1 means you dread Monday mornings. If you are not currently working, rate how clear and motivated you feel about what you want to do and the steps you are taking to get there.' }
+  { key: 'finance',        label: 'Finance',         desc: 'This is not about how much you have, but how you relate to money. A 10 means you are completely at ease with your finances — you manage them confidently and they bring you peace of mind. A 1 means financial worry is creating serious stress and limiting your decisions every day. Some people with very little score high here; some with plenty score low.' },
+  { key: 'personal_growth',label: 'Personal Growth', desc: 'Truly successful people commit to lifelong learning and self-improvement. Are you actively seeking new experiences, reading to expand your mind, and open to stretching your limits? A 10 means growth is a daily practice for you. The fact that you are completing this exercise already puts you above a 1 or 2.' },
+  { key: 'health',         label: 'Health',           desc: 'We tend to take health for granted until it fails us. Are you eating well, exercising regularly, and taking care of your body and mind? Having a long-term condition does not automatically mean a low score — what matters most is whether you are doing everything within your control to improve or maintain your wellbeing.' },
+  { key: 'family',         label: 'Family',           desc: 'Family life can be deeply rewarding and deeply challenging at the same time — from the sleepless nights of early parenthood to the tension of teenage years or extended family dynamics. Whatever family means to you, rate how fulfilled and supported you feel in those relationships right now.' },
+  { key: 'relationships',  label: 'Relationships',    desc: 'Think about the key relationship in your life — a partner, close friend, or significant other. How would you rate its quality right now? A 10 is a relationship full of trust, joy, and mutual growth. A 1 is one that is painful, stagnant, or absent. Be honest about where it truly is, not just where you wish it were.' },
+  { key: 'social_life',    label: 'Social Life',      desc: 'How rich and fulfilling is your social world? This is not just about frequency — it is about how comfortably and genuinely you connect with people. Some thrive at every gathering; others find social situations draining or anxiety-inducing. Consider both the quality of your connections and how confident you feel in social settings.' },
+  { key: 'attitude',       label: 'Attitude',         desc: 'Your attitude shapes everything. Is your glass half full or half empty? A 10 means you naturally focus on possibilities, find solutions when things go wrong, and approach life with optimism and resilience. A low score means negativity and pessimism are patterns that are holding you back and affecting every other area of your life.' },
+  { key: 'career',         label: 'Career',           desc: 'We spend a huge portion of our lives working — so how does yours feel? A 10 means you are energised, purposeful, and would almost do your job for free. A 1 means you dread Monday mornings. If you are not currently working, rate how clear and motivated you feel about what you want to do and the steps you are taking to get there.' }
 ];
 
 const vals = [5,5,5,5,5,5,5,5];
@@ -393,11 +314,14 @@ function sc(v) {
   return 'rgb('+Math.round(234+(34-234)*t)+','+Math.round(179+(197-179)*t)+','+Math.round(8+(94-8)*t)+')';
 }
 
-function scHex(v) {
+function scRGB(v) {
   v = Math.max(0, Math.min(10, +v));
-  if (v <= 3) return '#ef4444';
-  if (v <= 6) return '#eab308';
-  return '#22c55e';
+  if (v <= 5) {
+    const t = v/5;
+    return [Math.round(239+(234-239)*t), Math.round(68+(179-68)*t), Math.round(68+(8-68)*t)];
+  }
+  const t = (v-5)/5;
+  return [Math.round(234+(34-234)*t), Math.round(179+(197-179)*t), Math.round(8+(94-8)*t)];
 }
 
 function paintSlider(i, color) {
@@ -412,12 +336,16 @@ function paintSlider(i, color) {
   document.head.appendChild(s);
 }
 
+function setDescContent(box, i) {
+  box.classList.add('has-content');
+  box.innerHTML = '<div class="desc-box-title" style="color:'+sc(vals[i])+'">'+AREAS[i].label+'</div><div class="desc-box-text">'+AREAS[i].desc+'</div>';
+}
+
 function showDesc(i) {
   activeDesc = i;
   document.querySelectorAll('.sl-row').forEach((r,j) => r.classList.toggle('active', j===i));
-  const box = document.getElementById('descBox');
-  box.classList.add('has-content');
-  box.innerHTML = '<div class="desc-box-title" style="color:'+sc(vals[i])+'">'+AREAS[i].label+'</div><div class="desc-box-text">'+AREAS[i].desc+'</div>';
+  setDescContent(document.getElementById('descBoxDesktop'), i);
+  setDescContent(document.getElementById('descBoxMobile'), i);
 }
 
 const chart = new Chart(document.getElementById('wChart').getContext('2d'), {
@@ -486,53 +414,27 @@ function doReset() {
   refreshAvg();
   activeDesc=-1;
   document.querySelectorAll('.sl-row').forEach(r=>r.classList.remove('active'));
-  const box=document.getElementById('descBox');
-  box.classList.remove('has-content');
-  box.innerHTML='<div class="desc-box-hint">Tap any area above to read its description.</div>';
+  ['descBoxDesktop','descBoxMobile'].forEach(id => {
+    const b=document.getElementById(id);
+    b.classList.remove('has-content');
+    b.innerHTML='<div class="desc-box-hint">Tap any area above to read its description.</div>';
+  });
 }
 
-function doDownload() {
-  const src = document.getElementById('wChart');
-  const off = document.createElement('canvas');
-  off.width = src.width*2; off.height = src.height*2;
-  const oc = off.getContext('2d');
-  oc.scale(2,2);
-  oc.fillStyle='#0e0e10';
-  oc.fillRect(0,0,src.width,src.height);
-  oc.drawImage(src,0,0,src.width,src.height);
-  const a=document.createElement('a');
-  a.download='wheel-of-life.png';
-  a.href=off.toDataURL('image/png');
-  a.click();
-}
-
-/* ── Modal ── */
-function openSendModal() {
-  document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('emailInput').focus();
-}
-
-function closeSendModal(e) {
-  if (e && e.target !== document.getElementById('modalOverlay')) return;
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-
-function generateAndSend() {
-  const email = document.getElementById('emailInput').value.trim();
+function doDownloadPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
   const pageW = 210;
   const margin = 18;
-  const contentW = pageW - margin*2;
+  const contentW = pageW - margin * 2;
 
-  /* Background */
+  /* Dark background */
   doc.setFillColor(14, 14, 16);
   doc.rect(0, 0, 210, 297, 'F');
 
   /* Title */
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(26);
+  doc.setFontSize(24);
   doc.setTextColor(244, 244, 245);
   doc.text('Wheel of Life', pageW/2, 22, { align: 'center' });
 
@@ -543,119 +445,111 @@ function generateAndSend() {
   const now = new Date();
   doc.text(now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }), pageW/2, 29, { align: 'center' });
 
-  /* Chart image */
-  const src = document.getElementById('wChart');
-  const off = document.createElement('canvas');
-  off.width = src.width*2; off.height = src.height*2;
-  const oc = off.getContext('2d');
-  oc.scale(2,2);
-  oc.fillStyle='#0e0e10';
-  oc.fillRect(0,0,src.width,src.height);
-  oc.drawImage(src,0,0,src.width,src.height);
-  const imgData = off.toDataURL('image/png');
-  const imgSize = 110;
-  doc.addImage(imgData, 'PNG', (pageW-imgSize)/2, 33, imgSize, imgSize);
+  /* Chart: capture at native size, preserve square aspect ratio */
+  const srcCanvas = document.getElementById('wChart');
+  const cw = srcCanvas.width;
+  const ch = srcCanvas.height;
 
-  /* Average */
+  /* Draw onto a properly-sized square off-screen canvas */
+  const side = Math.max(cw, ch);
+  const off = document.createElement('canvas');
+  off.width = side * 2;
+  off.height = side * 2;
+  const oc = off.getContext('2d');
+  oc.scale(2, 2);
+  oc.fillStyle = '#0e0e10';
+  oc.fillRect(0, 0, side, side);
+  /* Centre the chart within the square canvas */
+  const ox = (side - cw) / 2;
+  const oy = (side - ch) / 2;
+  oc.drawImage(srcCanvas, ox, oy, cw, ch);
+
+  const imgData = off.toDataURL('image/png');
+  /* Place as square in PDF */
+  const pdfImgSize = 120;
+  doc.addImage(imgData, 'PNG', (pageW - pdfImgSize) / 2, 33, pdfImgSize, pdfImgSize);
+
+  /* Average score */
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
-  const avgHex = scHex(avg);
-  const ar = parseInt(avgHex.slice(1,3),16);
-  const ag = parseInt(avgHex.slice(3,5),16);
-  const ab = parseInt(avgHex.slice(5,7),16);
-  doc.setFont('helvetica','bold');
+  const [ar,ag,ab] = scRGB(avg);
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
-  doc.setTextColor(ar,ag,ab);
-  doc.text(avg.toFixed(1), pageW/2, 151, { align: 'center' });
-  doc.setFont('helvetica','normal');
+  doc.setTextColor(ar, ag, ab);
+  doc.text(avg.toFixed(1), pageW/2, 162, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(113,113,122);
-  doc.text('OVERALL AVERAGE', pageW/2, 156, { align: 'center' });
+  doc.setTextColor(113, 113, 122);
+  doc.text('OVERALL AVERAGE', pageW/2, 167, { align: 'center' });
 
   /* Scores table */
-  let y = 165;
+  let y = 177;
   const rowH = 10;
-  const barMaxW = contentW * 0.45;
-  const labelW = 42;
+  const barMaxW = contentW * 0.42;
+  const labelW = 44;
   const scoreW = 10;
-  const barX = margin + labelW + scoreW + 3;
+  const barX = margin + labelW + scoreW + 2;
 
   doc.setFontSize(7.5);
-  doc.setTextColor(113,113,122);
+  doc.setTextColor(113, 113, 122);
   doc.text('AREA', margin, y);
   doc.text('SCORE', margin + labelW, y);
   doc.text('RATING', barX, y);
 
   y += 3;
-  doc.setDrawColor(255,255,255,30);
   doc.setLineWidth(0.3);
-  doc.line(margin, y, margin+contentW, y);
+  doc.setDrawColor(50, 50, 55);
+  doc.line(margin, y, margin + contentW, y);
   y += 5;
 
   AREAS.forEach((area, i) => {
     const v = vals[i];
-    const hex = scHex(v);
-    const r = parseInt(hex.slice(1,3),16);
-    const g = parseInt(hex.slice(3,5),16);
-    const b = parseInt(hex.slice(5,7),16);
+    const [r,g,b] = scRGB(v);
 
-    /* Row background on alternating rows */
     if (i % 2 === 0) {
-      doc.setFillColor(30,30,33);
+      doc.setFillColor(28, 28, 32);
       doc.roundedRect(margin-2, y-4, contentW+4, rowH, 2, 2, 'F');
     }
 
     /* Label */
-    doc.setFont('helvetica','normal');
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(220,220,225);
+    doc.setTextColor(210, 210, 215);
     doc.text(area.label, margin, y+1.5);
 
-    /* Score number */
-    doc.setFont('helvetica','bold');
+    /* Score */
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(r,g,b);
-    doc.text(String(v), margin+labelW, y+1.5);
+    doc.setTextColor(r, g, b);
+    doc.text(String(v), margin + labelW, y+1.5);
 
-    /* Bar background */
-    doc.setFillColor(45,45,50);
+    /* Bar track */
+    doc.setFillColor(45, 45, 50);
     doc.roundedRect(barX, y-2.5, barMaxW, 5, 1.5, 1.5, 'F');
 
     /* Bar fill */
-    const fillW = (v/10) * barMaxW;
-    if (fillW > 0) {
-      doc.setFillColor(r,g,b);
-      doc.roundedRect(barX, y-2.5, fillW, 5, 1.5, 1.5, 'F');
+    if (v > 0) {
+      doc.setFillColor(r, g, b);
+      doc.roundedRect(barX, y-2.5, (v/10)*barMaxW, 5, 1.5, 1.5, 'F');
     }
 
     y += rowH;
   });
 
   /* Footer */
-  doc.setFont('helvetica','normal');
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(63,63,70);
-  doc.text('Made with love by Juanjo & Vanessa', pageW/2, 285, { align: 'center' });
+  doc.setTextColor(63, 63, 70);
+  doc.text('Made with love by Juanjo & Vanessa', pageW/2, 286, { align: 'center' });
 
-  /* Save */
   doc.save('wheel-of-life.pdf');
-
-  /* Open mailto */
-  if (email) {
-    const scoresText = AREAS.map((a,i) => a.label+': '+vals[i]+'/10').join('%0A');
-    const subject = encodeURIComponent('My Wheel of Life Results');
-    const body = encodeURIComponent('Hi,\n\nPlease find attached my Wheel of Life results.\n\n') + scoresText + encodeURIComponent('\n\nOverall average: '+avg.toFixed(1)+'/10\n\nMade with the Wheel of Life tool by Juanjo & Vanessa');
-    window.location.href = 'mailto:'+encodeURIComponent(email)+'?subject='+subject+'&body='+body;
-  }
-
-  document.getElementById('modalOverlay').classList.remove('open');
 }
 
 /* Init */
 for (let i=0;i<8;i++) {
-  paintSlider(i,sc(5));
-  document.getElementById('v'+i).style.color=sc(5);
+  paintSlider(i, sc(5));
+  document.getElementById('v'+i).style.color = sc(5);
 }
-document.getElementById('avgNum').style.color=sc(5);
+document.getElementById('avgNum').style.color = sc(5);
 </script>
 </body>
 </html>
