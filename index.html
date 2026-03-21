@@ -83,7 +83,7 @@
     background-clip: text;
     margin-bottom: 0.4rem;
   }
-  header p { color: var(--muted); font-size: 0.9rem; font-weight: 300; }
+  header p { color: var(--muted); font-size: 1rem; font-weight: 300; }
 
   .controls {
     position: absolute;
@@ -101,7 +101,7 @@
     padding: 6px 13px;
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     font-weight: 500;
     color: var(--muted);
     transition: all 0.2s;
@@ -147,7 +147,7 @@
   }
 
   .panel-label {
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.12em;
@@ -164,10 +164,10 @@
     font-weight: 400;
     line-height: 1;
   }
-  .avg-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px; text-align: center; }
+  .avg-lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px; text-align: center; }
 
   .legend { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .leg { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--muted); }
+  .leg { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: var(--muted); }
   .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
   .desc-box {
@@ -179,9 +179,9 @@
     transition: border-color 0.2s, background 0.3s;
   }
   .desc-box.has-content { border-color: rgba(124,95,240,0.35); }
-  .desc-box-title { font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; }
-  .desc-box-text  { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
-  .desc-box-hint  { font-size: 0.78rem; color: var(--hint); font-style: italic; }
+  .desc-box-title { font-size: 0.95rem; font-weight: 500; margin-bottom: 6px; }
+  .desc-box-text  { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+  .desc-box-hint  { font-size: 0.85rem; color: var(--hint); font-style: italic; }
 
   .sliders-panel { display: flex; flex-direction: column; gap: 0.6rem; }
 
@@ -198,8 +198,8 @@
   .sl-row.active { border-color: rgba(124,95,240,0.45); background: var(--rowbg); }
 
   .sl-top  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
-  .sl-name { font-size: 0.82rem; font-weight: 500; color: var(--text); }
-  .sl-val  { font-size: 0.9rem; font-weight: 500; min-width: 18px; text-align: right; }
+  .sl-name { font-size: 0.92rem; font-weight: 500; color: var(--text); }
+  .sl-val  { font-size: 1rem; font-weight: 500; min-width: 18px; text-align: right; }
 
   input[type="range"] {
     -webkit-appearance: none; appearance: none;
@@ -230,7 +230,7 @@
 
   .btn {
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem; font-weight: 500;
+    font-size: 1rem; font-weight: 500;
     padding: 0.85rem 1rem; border-radius: 14px;
     cursor: pointer; border: 1px solid var(--border);
     transition: all 0.18s;
@@ -240,7 +240,7 @@
   .btn-purple { background: #7c5ff0; color: #fff; border-color: transparent; }
   .btn-purple:hover { background: #6d50e0; transform: translateY(-1px); }
 
-  footer { margin-top: 2rem; font-size: 0.75rem; color: var(--hint); text-align: center; }
+  footer { margin-top: 2rem; font-size: 0.85rem; color: var(--hint); text-align: center; }
 </style>
 </head>
 <body>
@@ -564,7 +564,7 @@ const chart = new Chart(document.getElementById('wChart').getContext('2d'), {
       ticks: { display: false },
       grid:        { color: 'rgba(255,255,255,0.07)' },
       angleLines:  { color: 'rgba(255,255,255,0.07)' },
-      pointLabels: { color: '#a1a1aa', font: { size: 10, family: 'DM Sans', weight: '500' }, padding: 8 }
+      pointLabels: { color: '#a1a1aa', font: { size: 12, family: 'DM Sans', weight: '500' }, padding: 8 }
     }},
     animation: { duration: 160 }
   }
