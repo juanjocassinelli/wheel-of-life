@@ -968,6 +968,7 @@ function doDownloadPDF() {
       doc.line(margin,py,margin+contentW,py); py+=4;
 
       t.areas.forEach((area,i)=>{
+        if (goals[i]===5 && intentions[i]==='') return;
         if (py>270) return;
         const gv=goals[i]; const [gr,gg,gb]=scRGB(gv);
         const curr=vals[i]; const [cr2,cg2,cb2]=scRGB(curr);
