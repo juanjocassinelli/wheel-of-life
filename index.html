@@ -424,6 +424,10 @@
       <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.55" id="txt-history-intro"></p>
       <div id="historyBody"></div>
       <button class="btn btn-purple" style="width:100%;margin-top:1rem" id="btn-save-snap" onclick="saveSnapshot()">Save snapshot ↓</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem">
+        <button class="btn btn-ghost" id="btn-wol-export" onclick="exportHistory()">Export ↓</button>
+        <label class="btn btn-ghost" style="cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center" id="btn-wol-import">Import ↑<input type="file" accept=".json" style="display:none" onchange="importHistory(this)"></label>
+      </div>
     </div>
   </div>
 </div>
@@ -509,7 +513,7 @@ const LANGS = {
     goalTargetLbl:'Target',
     goalPh:       'One intention for this area…',
     historyLbl:   'History',
-    historyIntro: 'Your snapshots are saved privately in this browser — no data is ever sent online or stored on any server. This tool is fully privacy-focused: your reflections stay on your device only.\n\n⚠️ Important: clearing your browser cache or data will permanently erase your history. Download your PDF regularly to keep a personal record.',
+    historyIntro: 'Your snapshots are saved privately in this browser — no data is ever sent online or stored on any server. This tool is fully privacy-focused: your reflections stay on your device only.\n\n⚠️ Important: clearing your browser cache will erase your history. Use Export to save a backup file you can re-import at any time.\n\n📱 Safari / Apple devices: Safari private mode blocks local storage. Always Export your history — save the file to Files, iCloud Drive, or email it to yourself.',
     historySave:  'Save snapshot ↓',
     historyEmpty: 'No snapshots saved yet. Save your first one after completing the wheel.',
     historyLoad:  'Load',
@@ -517,6 +521,10 @@ const LANGS = {
     historyCompare:'Compare',
     historyCompareSelect:'Select a second snapshot to compare with the current wheel.',
     historyCompareCurrent:'Current',
+    historyExport:  'Export backup',
+    historyImport:  'Import backup',
+    historyImportOk:'Snapshots imported successfully.',
+    historyImportErr:'Could not read the file. Please use a backup exported from this app.',
     compareLbl:   'Compare wheels',
     pdfGoalsLbl:  'GOALS & INTENTIONS',
     pdfGoalTarget:'Target',
@@ -575,7 +583,7 @@ const LANGS = {
     goalTargetLbl:'Meta',
     goalPh:       'Una intención para esta área…',
     historyLbl:   'Historial',
-    historyIntro: 'Tus instantáneas se guardan de forma privada en este navegador — ningún dato se envía a internet ni se almacena en ningún servidor. Esta herramienta es completamente privada: tus reflexiones permanecen solo en tu dispositivo.\n\n⚠️ Importante: borrar la caché o los datos de tu navegador eliminará permanentemente tu historial. Descarga tu PDF con regularidad para conservar un registro personal.',
+    historyIntro: 'Tus instantáneas se guardan de forma privada en este navegador — ningún dato se envía a internet ni se almacena en ningún servidor. Esta herramienta es completamente privada: tus reflexiones permanecen solo en tu dispositivo.\n\n⚠️ Importante: borrar la caché del navegador eliminará tu historial. Usa Exportar para guardar una copia que puedas reimportar cuando quieras.\n\n📱 Safari / dispositivos Apple: el modo privado de Safari bloquea el almacenamiento local. Usa siempre Exportar — guarda el archivo en Archivos, iCloud Drive o envíatelo por correo.',
     historySave:  'Guardar instantánea ↓',
     historyEmpty: 'Aún no hay instantáneas guardadas. Guarda la primera después de completar la rueda.',
     historyLoad:  'Cargar',
@@ -583,6 +591,10 @@ const LANGS = {
     historyCompare:'Comparar',
     historyCompareSelect:'Selecciona una segunda instantánea para comparar con la rueda actual.',
     historyCompareCurrent:'Actual',
+    historyExport:  'Exportar copia',
+    historyImport:  'Importar copia',
+    historyImportOk:'Instantáneas importadas correctamente.',
+    historyImportErr:'No se pudo leer el archivo. Usa una copia exportada desde esta aplicación.',
     compareLbl:   'Comparar ruedas',
     pdfGoalsLbl:  'METAS E INTENCIONES',
     pdfGoalTarget:'Meta',
@@ -1235,6 +1247,42 @@ function saveHistory(h) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(h)); } catch(e) {}
 }
 
+function exportHistory() {
+  const h = loadHistory();
+  if (h.length === 0) { alert(LANGS[lang].historyEmpty); return; }
+  const blob = new Blob([JSON.stringify({ version:1, snapshots:h }, null, 2)], { type:'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'wheel-of-life-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importHistory(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data  = JSON.parse(e.target.result);
+      const snaps = Array.isArray(data) ? data : (data.snapshots || []);
+      if (!Array.isArray(snaps) || snaps.length === 0) throw new Error('invalid');
+      const existing    = loadHistory();
+      const existingIds = new Set(existing.map(function(s){ return s.id; }));
+      const toAdd       = snaps.filter(function(s){ return !existingIds.has(s.id); });
+      const merged      = toAdd.concat(existing).sort(function(a,b){ return b.id - a.id; });
+      saveHistory(merged);
+      renderHistory();
+      alert(LANGS[lang].historyImportOk);
+    } catch(err) {
+      alert(LANGS[lang].historyImportErr);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
 function toggleHistory() {
   historyOpen = !historyOpen;
   document.getElementById('historyContent').style.display = historyOpen ? 'block' : 'none';
@@ -1296,8 +1344,13 @@ function renderHistory() {
   const h    = loadHistory();
   document.getElementById('txt-history-intro').innerHTML = t.historyIntro
     .replace(/\n\n/g, '<br><br>')
-    .replace(/⚠️/g, '<span style="color:#eab308">⚠️</span>');
+    .replace(/⚠️/g, '<span style="color:#eab308">⚠️</span>')
+    .replace(/📱/g, '<span>📱</span>');
   document.getElementById('btn-save-snap').textContent     = t.historySave;
+  const expB = document.getElementById('btn-wol-export');
+  if (expB) expB.textContent = (t.historyExport || 'Export') + ' ↓';
+  const impL = document.getElementById('btn-wol-import');
+  if (impL) impL.childNodes[0].textContent = (t.historyImport || 'Import') + ' ↑';
   if (h.length === 0) {
     body.innerHTML = `<div style="font-size:0.85rem;color:var(--hint);font-style:italic">${t.historyEmpty}</div>`;
     return;
