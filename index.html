@@ -241,6 +241,46 @@
   .btn-purple:hover { background: #6d50e0; transform: translateY(-1px); }
 
   footer { margin-top: 2rem; font-size: 0.85rem; color: var(--hint); text-align: center; }
+
+  /* ── Goal rows ── */
+  .goal-row { display:grid; grid-template-columns:1fr auto; gap:8px 12px; align-items:center; padding:10px 14px; background:var(--surface2); border-radius:10px; margin-bottom:0.5rem; }
+  .goal-row:last-child { margin-bottom:0; }
+  .goal-name { font-size:0.88rem; font-weight:500; color:var(--text); grid-column:1; }
+  .goal-score-lbl { font-size:0.82rem; font-weight:500; text-align:right; min-width:18px; }
+  .goal-range { grid-column:1/-1; }
+  .goal-intent { grid-column:1/-1; background:var(--surface3); border:1px solid var(--border2); border-radius:8px; padding:8px 12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.85rem; outline:none; width:100%; transition:border-color 0.15s; }
+  .goal-intent:focus { border-color:rgba(124,95,240,0.5); }
+  .goal-intent::placeholder { color:var(--hint); }
+
+  /* ── Interpretation card ── */
+  .interp-area { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; background:var(--surface2); border-radius:10px; margin-bottom:0.5rem; }
+  .interp-area:last-child { margin-bottom:0; }
+  .interp-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+  .interp-text { font-size:0.85rem; color:var(--muted); line-height:1.55; }
+  .interp-label { font-weight:500; color:var(--text); }
+
+  /* ── Reflection questions ── */
+  .reflect-area { padding:12px 14px; background:var(--surface2); border-radius:10px; margin-bottom:0.5rem; }
+  .reflect-area:last-child { margin-bottom:0; }
+  .reflect-area-name { font-size:0.82rem; font-weight:500; margin-bottom:8px; }
+  .reflect-q { font-size:0.83rem; color:var(--muted); padding:4px 0 4px 14px; border-left:2px solid; line-height:1.5; margin-bottom:5px; }
+  .reflect-q:last-child { margin-bottom:0; }
+
+  /* ── History list ── */
+  .hist-entry { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border-radius:10px; margin-bottom:0.5rem; }
+  .hist-entry:last-child { margin-bottom:0; }
+  .hist-date { flex:1; font-size:0.85rem; color:var(--text); font-weight:500; }
+  .hist-avg  { font-size:0.82rem; font-weight:500; }
+  .hist-btns { display:flex; gap:6px; }
+  .hist-btn  { font-family:'DM Sans',sans-serif; font-size:0.75rem; font-weight:500; padding:5px 10px; border-radius:7px; cursor:pointer; border:1px solid var(--border2); background:var(--surface3); color:var(--muted); transition:all 0.15s; }
+  .hist-btn:hover { background:var(--surface); color:var(--text); }
+  .hist-btn.danger:hover { background:#3f1212; color:#ef4444; border-color:#ef444444; }
+
+  /* ── Compare modal chart ── */
+  #compareChartWrap { position:relative; width:100%; height:260px; }
+  .compare-legend { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:0.75rem; }
+  .compare-leg { display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--muted); }
+  .compare-leg-line { width:20px; height:3px; border-radius:2px; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -253,6 +293,19 @@
   <div class="controls">
     <button class="pill-btn" onclick="toggleTheme()" id="themeBtn">☀️ <span id="themeLabel">Light</span></button>
     <button class="pill-btn" onclick="toggleLang()"  id="langBtn">🌐 <span id="langLabel">Español</span></button>
+  </div>
+</div>
+
+<!-- Instructions panel -->
+<div style="width:100%;max-width:960px;margin-bottom:1.25rem">
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleInstructions()">
+      <div class="panel-label" style="margin-bottom:0" id="txt-instr-lbl">How to use this exercise</div>
+      <span id="instrChevron" style="color:var(--muted);font-size:1.1rem;transition:transform 0.25s;display:inline-block">▾</span>
+    </div>
+    <div id="instrContent" style="margin-top:1rem;display:none">
+      <p id="txt-instr-body" style="font-size:0.88rem;color:var(--muted);line-height:1.7"></p>
+    </div>
   </div>
 </div>
 
@@ -323,12 +376,91 @@
 
 </div>
 
-<div class="actions">
-  <button class="btn btn-ghost"   id="btn-reset"    onclick="doReset()">&#8635; Reset</button>
+
+
+<!-- Interpretation Card (always visible after any interaction) -->
+<div style="width:100%;max-width:960px;margin-top:1.25rem" id="interpretWrap">
+  <div class="panel">
+    <div class="panel-label" id="txt-interpret-lbl">Your snapshot</div>
+    <div id="interpretBody"><div style="font-size:0.85rem;color:var(--hint);font-style:italic" id="interpretHint">Rate the areas above to see your personalised snapshot.</div></div>
+  </div>
+</div>
+
+<!-- Reflection Questions (collapsible, shows for areas ≤ 6) -->
+<div style="width:100%;max-width:960px;margin-top:1.25rem" id="reflectWrap">
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleReflect()">
+      <div class="panel-label" style="margin-bottom:0" id="txt-reflect-lbl">Reflection questions</div>
+      <span id="reflectChevron" style="color:var(--muted);font-size:1.1rem;transition:transform 0.25s;display:inline-block">▾</span>
+    </div>
+    <div id="reflectContent" style="margin-top:1rem;display:none">
+      <div id="reflectBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Setting Panel (collapsible) -->
+<div style="width:100%;max-width:960px;margin-top:1.25rem">
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleGoals()">
+      <div class="panel-label" style="margin-bottom:0" id="txt-goals-lbl">Set your goals</div>
+      <span id="goalsChevron" style="color:var(--muted);font-size:1.1rem;transition:transform 0.25s;display:inline-block">▾</span>
+    </div>
+    <div id="goalsContent" style="margin-top:1rem;display:none">
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.55" id="txt-goals-intro"></p>
+      <div id="goalsBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- History Panel (collapsible, localStorage) -->
+<div style="width:100%;max-width:960px;margin-top:1.25rem">
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleHistory()">
+      <div class="panel-label" style="margin-bottom:0" id="txt-history-lbl">History</div>
+      <span id="historyChevron" style="color:var(--muted);font-size:1.1rem;transition:transform 0.25s;display:inline-block">▾</span>
+    </div>
+    <div id="historyContent" style="margin-top:1rem;display:none">
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.55" id="txt-history-intro"></p>
+      <div id="historyBody"></div>
+      <button class="btn btn-purple" style="width:100%;margin-top:1rem" id="btn-save-snap" onclick="saveSnapshot()">Save snapshot ↓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Compare Modal -->
+<div id="compareOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center;padding:1rem" onclick="closeCompare(event)">
+  <div style="background:#1c1c20;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:1.75rem;width:100%;max-width:520px;display:flex;flex-direction:column;gap:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.3rem;font-weight:400;color:#f4f4f5" id="txt-compare-title">Compare wheels</div>
+      <button onclick="closeCompare()" style="background:none;border:none;color:#71717a;font-size:1.4rem;cursor:pointer;line-height:1;padding:2px 6px">&#215;</button>
+    </div>
+    <div id="compareChartWrap"><canvas id="compareChart"></canvas></div>
+    <div class="compare-legend" id="compareLegend"></div>
+    <div id="compareScoreTable" style="display:grid;grid-template-columns:1fr repeat(2,auto);gap:4px 16px;font-size:0.82rem;margin-top:0.25rem"></div>
+  </div>
+</div>
+
+<div class="actions" style="margin-top:1.25rem">
+  <button class="btn btn-ghost"   id="btn-reset"    onclick="openResetModal()">&#8635; Reset</button>
   <button class="btn btn-purple"  id="btn-download" onclick="doDownloadPDF()">Download PDF &darr;</button>
 </div>
 
 <footer id="txt-footer">Made with love by Juanjo &amp; Vanessa &#10084;</footer>
+
+<!-- Reset Confirmation Modal -->
+<div id="resetOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:1rem" onclick="closeResetModal(event)">
+  <div style="background:#1c1c20;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:2rem;width:100%;max-width:380px;display:flex;flex-direction:column;gap:1.25rem">
+    <div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;font-weight:400;color:#f4f4f5;margin-bottom:0.4rem" id="txt-reset-title">Reset everything?</div>
+      <div style="font-size:0.85rem;color:#71717a;line-height:1.6" id="txt-reset-body">This will reset all sliders back to 5. This action cannot be undone.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+      <button onclick="closeResetModal()" style="font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;padding:0.75rem;border-radius:10px;cursor:pointer;background:transparent;color:#71717a;border:1px solid rgba(255,255,255,0.08);transition:all 0.15s" onmouseover="this.style.background='#27272a';this.style.color='#f4f4f5'" onmouseout="this.style.background='transparent';this.style.color='#71717a'" id="txt-reset-cancel">Cancel</button>
+      <button onclick="confirmReset()" style="font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;padding:0.75rem;border-radius:10px;cursor:pointer;background:#ef4444;color:#fff;border:none;transition:all 0.15s" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'" id="txt-reset-confirm">Yes, reset</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ══════════════════════════════════════════
@@ -352,20 +484,53 @@ const LANGS = {
     themeDark:   'Dark',
     langSwitch:  'Español',
     footer:      'Made with love by Juanjo &amp; Vanessa &#10084;',
+    instrLbl:    'How to use this exercise',
+    resetTitle:  'Reset everything?',
+    resetBody:   'This will reset all sliders back to 5. This action cannot be undone.',
+    resetCancel: 'Cancel',
+    resetConfirm:'Yes, reset',
     pdfAvg:      'OVERALL AVERAGE',
     pdfArea:     'AREA',
     pdfScore:    'SCORE',
     pdfRating:   'RATING',
     pdfFooter:   'Made with love by Juanjo & Vanessa',
+    interpretLbl: 'Your snapshot',
+    interpretHint:'Rate the areas above to see your personalised snapshot.',
+    interpHighAvg:'Your overall average is {avg} — your life is in a strong, balanced place. Acknowledge the work that has brought you here.',
+    interpMidAvg: 'Your overall average is {avg} — there is real balance in many areas, with clear opportunities to grow.',
+    interpLowAvg: 'Your overall average is {avg} — this is a valuable signal. The areas scoring low deserve your honest attention.',
+    interpFocus:  'Areas that could use your attention right now:',
+    interpAllGood:'All areas are scoring well. Keep up the momentum and revisit this monthly to track your progress.',
+    reflectLbl:   'Reflection questions',
+    reflectIntro: 'Questions for the areas where you scored 6 or below. Take your time — there are no right answers.',
+    reflectEmpty: 'All your areas are scoring above 6. Keep going!',
+    goalsLbl:     'Set your goals',
+    goalsIntro:   'For each area, set a target score you want to reach and write one intention — a small, concrete action you will take. These will appear in your PDF.',
+    goalTargetLbl:'Target',
+    goalPh:       'One intention for this area…',
+    historyLbl:   'History',
+    historyIntro: 'Your snapshots are saved privately in this browser — no data is ever sent online or stored on any server. This tool is fully privacy-focused: your reflections stay on your device only.\n\n⚠️ Important: clearing your browser cache or data will permanently erase your history. Download your PDF regularly to keep a personal record.',
+    historySave:  'Save snapshot ↓',
+    historyEmpty: 'No snapshots saved yet. Save your first one after completing the wheel.',
+    historyLoad:  'Load',
+    historyDel:   'Delete',
+    historyCompare:'Compare',
+    historyCompareSelect:'Select a second snapshot to compare with the current wheel.',
+    historyCompareCurrent:'Current',
+    compareLbl:   'Compare wheels',
+    pdfGoalsLbl:  'GOALS & INTENTIONS',
+    pdfGoalTarget:'Target',
+    pdfGoalIntent:'Intention',
+    pdfReflectLbl:'REFLECTION QUESTIONS',
     areas: [
-      { label:'Finance',         desc:'This is not about how much you have, but how you relate to money. A 10 means you are completely at ease with your finances — you manage them confidently and they bring you peace of mind. A 1 means financial worry is creating serious stress and limiting your decisions every day. Some people with very little score high here; some with plenty score low.' },
-      { label:'Personal Growth', desc:'Truly successful people commit to lifelong learning and self-improvement. Are you actively seeking new experiences, reading to expand your mind, and open to stretching your limits? A 10 means growth is a daily practice for you. The fact that you are completing this exercise already puts you above a 1 or 2.' },
-      { label:'Health',          desc:'We tend to take health for granted until it fails us. Are you eating well, exercising regularly, and taking care of your body and mind? Having a long-term condition does not automatically mean a low score — what matters most is whether you are doing everything within your control to improve or maintain your wellbeing.' },
-      { label:'Family',          desc:'Family life can be deeply rewarding and deeply challenging at the same time — from the sleepless nights of early parenthood to the tension of teenage years or extended family dynamics. Whatever family means to you, rate how fulfilled and supported you feel in those relationships right now.' },
-      { label:'Relationships',   desc:'Think about the key relationship in your life — a partner, close friend, or significant other. How would you rate its quality right now? A 10 is a relationship full of trust, joy, and mutual growth. A 1 is one that is painful, stagnant, or absent. Be honest about where it truly is, not just where you wish it were.' },
-      { label:'Social Life',     desc:'How rich and fulfilling is your social world? This is not just about frequency — it is about how comfortably and genuinely you connect with people. Some thrive at every gathering; others find social situations draining. Consider both the quality of your connections and how confident you feel in social settings.' },
-      { label:'Attitude',        desc:'Your attitude shapes everything. Is your glass half full or half empty? A 10 means you naturally focus on possibilities, find solutions when things go wrong, and approach life with optimism and resilience. A low score means negativity and pessimism are patterns holding you back and affecting every other area of your life.' },
-      { label:'Career',          desc:'We spend a huge portion of our lives working — so how does yours feel? A 10 means you are energised, purposeful, and would almost do your job for free. A 1 means you dread Monday mornings. If you are not currently working, rate how clear and motivated you feel about what you want to do and the steps you are taking to get there.' }
+      { label:'Finance', questions:['What does financial security mean to you personally?', 'What is one spending or saving habit you could change this month?', 'If money were not a concern, what would you do differently?'],         desc:'This is not about how much you have, but how you relate to money. A 10 means you are completely at ease with your finances — you manage them confidently and they bring you peace of mind. A 1 means financial worry is creating serious stress and limiting your decisions every day. Some people with very little score high here; some with plenty score low.' },
+      { label:'Personal Growth', questions:['What are you actively learning right now — and is it enough?', 'What is one belief about yourself that might be holding you back?', 'When did you last genuinely step outside your comfort zone?'], desc:'Truly successful people commit to lifelong learning and self-improvement. Are you actively seeking new experiences, reading to expand your mind, and open to stretching your limits? A 10 means growth is a daily practice for you. The fact that you are completing this exercise already puts you above a 1 or 2.' },
+      { label:'Health', questions:['What is one small change that would most improve your physical wellbeing?', 'How well are you sleeping, and what one thing could you improve?', 'Are you truly listening to your body, or quietly ignoring it?'],          desc:'We tend to take health for granted until it fails us. Are you eating well, exercising regularly, and taking care of your body and mind? Having a long-term condition does not automatically mean a low score — what matters most is whether you are doing everything within your control to improve or maintain your wellbeing.' },
+      { label:'Family', questions:['What would most strengthen your family relationships right now?', 'Is there a conversation you have been avoiding with a family member?', 'How do you want your family life to feel one year from now?'],          desc:'Family life can be deeply rewarding and deeply challenging at the same time — from the sleepless nights of early parenthood to the tension of teenage years or extended family dynamics. Whatever family means to you, rate how fulfilled and supported you feel in those relationships right now.' },
+      { label:'Relationships', questions:['What does this relationship give you — and what does it ask of you?', 'Are you showing up fully and honestly in your key relationship?', 'What one change would make this relationship feel more fulfilling?'],   desc:'Think about the key relationship in your life — a partner, close friend, or significant other. How would you rate its quality right now? A 10 is a relationship full of trust, joy, and mutual growth. A 1 is one that is painful, stagnant, or absent. Be honest about where it truly is, not just where you wish it were.' },
+      { label:'Social Life', questions:['What kind of social connection do you most need right now?', 'Are there friendships you have been unintentionally neglecting?', 'What holds you back from connecting more openly with others?'],     desc:'How rich and fulfilling is your social world? This is not just about frequency — it is about how comfortably and genuinely you connect with people. Some thrive at every gathering; others find social situations draining. Consider both the quality of your connections and how confident you feel in social settings.' },
+      { label:'Attitude', questions:['What story are you telling yourself about your life right now?', 'When things go wrong, what is your automatic response?', 'What would a more optimistic version of you do differently today?'],        desc:'Your attitude shapes everything. Is your glass half full or half empty? A 10 means you naturally focus on possibilities, find solutions when things go wrong, and approach life with optimism and resilience. A low score means negativity and pessimism are patterns holding you back and affecting every other area of your life.' },
+      { label:'Career', questions:['What would make you genuinely excited to go to work each day?', 'Are you growing in your current role, or feeling stuck?', 'If you could change one thing about your work situation, what would it be?'],          desc:'We spend a huge portion of our lives working — so how does yours feel? A 10 means you are energised, purposeful, and would almost do your job for free. A 1 means you dread Monday mornings. If you are not currently working, rate how clear and motivated you feel about what you want to do and the steps you are taking to get there.' }
     ]
   },
   es: {
@@ -385,20 +550,53 @@ const LANGS = {
     themeDark:   'Oscuro',
     langSwitch:  'English',
     footer:      'Hecho con amor por Juanjo &amp; Vanessa &#10084;',
+    instrLbl:    'Cómo usar este ejercicio',
+    resetTitle:  '¿Reiniciar todo?',
+    resetBody:   'Esto restablecerá todos los controles a 5. Esta acción no se puede deshacer.',
+    resetCancel: 'Cancelar',
+    resetConfirm:'Sí, reiniciar',
     pdfAvg:      'PROMEDIO GENERAL',
     pdfArea:     'ÁREA',
     pdfScore:    'PUNTOS',
     pdfRating:   'NIVEL',
     pdfFooter:   'Hecho con amor por Juanjo & Vanessa',
+    interpretLbl: 'Tu panorama',
+    interpretHint:'Valora las áreas de arriba para ver tu panorama personalizado.',
+    interpHighAvg:'Tu promedio general es {avg} — tu vida está en un lugar sólido y equilibrado. Reconoce el trabajo que te ha traído hasta aquí.',
+    interpMidAvg: 'Tu promedio general es {avg} — hay equilibrio real en muchas áreas, con oportunidades claras de crecer.',
+    interpLowAvg: 'Tu promedio general es {avg} — esta es una señal valiosa. Las áreas con puntuación baja merecen tu atención honesta.',
+    interpFocus:  'Áreas que podrían necesitar tu atención ahora mismo:',
+    interpAllGood:'Todas las áreas tienen buena puntuación. ¡Sigue así y revisita esto mensualmente para seguir tu progreso!',
+    reflectLbl:   'Preguntas de reflexión',
+    reflectIntro: 'Preguntas para las áreas donde puntuaste 6 o menos. Tómate tu tiempo — no hay respuestas correctas.',
+    reflectEmpty: '¡Todas tus áreas superan el 6. Sigue así!',
+    goalsLbl:     'Establece tus metas',
+    goalsIntro:   'Para cada área, define una puntuación objetivo y escribe una intención — una acción pequeña y concreta que llevarás a cabo. Aparecerán en tu PDF.',
+    goalTargetLbl:'Meta',
+    goalPh:       'Una intención para esta área…',
+    historyLbl:   'Historial',
+    historyIntro: 'Tus instantáneas se guardan de forma privada en este navegador — ningún dato se envía a internet ni se almacena en ningún servidor. Esta herramienta es completamente privada: tus reflexiones permanecen solo en tu dispositivo.\n\n⚠️ Importante: borrar la caché o los datos de tu navegador eliminará permanentemente tu historial. Descarga tu PDF con regularidad para conservar un registro personal.',
+    historySave:  'Guardar instantánea ↓',
+    historyEmpty: 'Aún no hay instantáneas guardadas. Guarda la primera después de completar la rueda.',
+    historyLoad:  'Cargar',
+    historyDel:   'Eliminar',
+    historyCompare:'Comparar',
+    historyCompareSelect:'Selecciona una segunda instantánea para comparar con la rueda actual.',
+    historyCompareCurrent:'Actual',
+    compareLbl:   'Comparar ruedas',
+    pdfGoalsLbl:  'METAS E INTENCIONES',
+    pdfGoalTarget:'Meta',
+    pdfGoalIntent:'Intención',
+    pdfReflectLbl:'PREGUNTAS DE REFLEXIÓN',
     areas: [
-      { label:'Finanzas',             desc:'No se trata de cuánto tienes, sino de cómo te relacionas con el dinero. Un 10 significa que estás completamente tranquilo con tus finanzas — las gestionas con confianza y te dan paz mental. Un 1 significa que la preocupación financiera genera un estrés serio que limita tus decisiones cada día. Hay personas con poco que puntúan alto, y otras con mucho que puntúan bajo.' },
-      { label:'Crecimiento Personal', desc:'Las personas verdaderamente exitosas se comprometen con el aprendizaje y la mejora continua. ¿Buscas activamente nuevas experiencias, lees para expandir tu mente y estás abierto a superarte? Un 10 significa que el crecimiento es una práctica diaria para ti. El hecho de que estés completando este ejercicio ya te sitúa por encima de un 1 o un 2.' },
-      { label:'Salud',                desc:'Solemos dar la salud por sentada hasta que nos falla. ¿Comes bien, haces ejercicio regularmente y cuidas tu cuerpo y tu mente? Tener una enfermedad crónica no implica necesariamente una puntuación baja — lo que más importa es si estás haciendo todo lo que está en tu mano para mejorar o mantener tu bienestar.' },
-      { label:'Familia',              desc:'La vida familiar puede ser profundamente enriquecedora y desafiante al mismo tiempo — desde las noches sin dormir de la primera infancia hasta las tensiones de la adolescencia o la familia extendida. Sea lo que sea que la familia signifique para ti, puntúa cómo te sientes de realizado y apoyado en esas relaciones ahora mismo.' },
-      { label:'Relaciones',           desc:'Piensa en la relación más importante de tu vida — una pareja, un amigo cercano u otra persona significativa. ¿Cómo valorarías su calidad ahora mismo? Un 10 es una relación llena de confianza, alegría y crecimiento mutuo. Un 1 es una relación dolorosa, estancada o inexistente. Sé honesto sobre dónde está realmente, no solo donde desearías que estuviera.' },
-      { label:'Vida Social',          desc:'¿Qué tan rica y satisfactoria es tu vida social? No se trata solo de frecuencia — sino de la comodidad y autenticidad con la que conectas con las personas. Algunos disfrutan en cada reunión; otros encuentran las situaciones sociales agotadoras. Considera tanto la calidad de tus conexiones como la confianza que sientes en entornos sociales.' },
-      { label:'Actitud',              desc:'Tu actitud lo moldea todo. ¿Tu vaso está medio lleno o medio vacío? Un 10 significa que naturalmente te enfocas en las posibilidades, encuentras soluciones cuando algo sale mal y afrontas la vida con optimismo y resiliencia. Una puntuación baja indica que la negatividad y el pesimismo son patrones que te frenan y afectan a todas las demás áreas de tu vida.' },
-      { label:'Carrera',              desc:'Pasamos una gran parte de nuestras vidas trabajando — ¿cómo se siente la tuya? Un 10 significa que estás lleno de energía, con propósito, y que casi harías tu trabajo sin cobrar. Un 1 significa que temes los lunes por la mañana. Si no estás trabajando ahora, puntúa qué tan claro y motivado te sientes respecto a lo que quieres hacer y los pasos que estás tomando para lograrlo.' }
+      { label:'Finanzas', questions:['¿Qué significa para ti tener seguridad financiera?', '¿Hay algún hábito de gasto o ahorro que podrías cambiar este mes?', 'Si el dinero no fuera una preocupación, ¿qué harías de forma diferente?'],             desc:'No se trata de cuánto tienes, sino de cómo te relacionas con el dinero. Un 10 significa que estás completamente tranquilo con tus finanzas — las gestionas con confianza y te dan paz mental. Un 1 significa que la preocupación financiera genera un estrés serio que limita tus decisiones cada día. Hay personas con poco que puntúan alto, y otras con mucho que puntúan bajo.' },
+      { label:'Crecimiento Personal', questions:['¿Qué estás aprendiendo activamente ahora mismo — y es suficiente?', '¿Qué creencia sobre ti mismo podría estar frenándote?', '¿Cuándo fue la última vez que saliste genuinamente de tu zona de confort?'], desc:'Las personas verdaderamente exitosas se comprometen con el aprendizaje y la mejora continua. ¿Buscas activamente nuevas experiencias, lees para expandir tu mente y estás abierto a superarte? Un 10 significa que el crecimiento es una práctica diaria para ti. El hecho de que estés completando este ejercicio ya te sitúa por encima de un 1 o un 2.' },
+      { label:'Salud', questions:['¿Qué pequeño cambio mejoraría más tu bienestar físico?', '¿Cómo estás durmiendo y qué podrías mejorar?', '¿Estás escuchando de verdad a tu cuerpo o ignorándolo en silencio?'],                desc:'Solemos dar la salud por sentada hasta que nos falla. ¿Comes bien, haces ejercicio regularmente y cuidas tu cuerpo y tu mente? Tener una enfermedad crónica no implica necesariamente una puntuación baja — lo que más importa es si estás haciendo todo lo que está en tu mano para mejorar o mantener tu bienestar.' },
+      { label:'Familia', questions:['¿Qué fortalecería más tus relaciones familiares ahora mismo?', '¿Hay alguna conversación que hayas estado evitando con un familiar?', '¿Cómo quieres que se sienta tu vida familiar dentro de un año?'],              desc:'La vida familiar puede ser profundamente enriquecedora y desafiante al mismo tiempo — desde las noches sin dormir de la primera infancia hasta las tensiones de la adolescencia o la familia extendida. Sea lo que sea que la familia signifique para ti, puntúa cómo te sientes de realizado y apoyado en esas relaciones ahora mismo.' },
+      { label:'Relaciones', questions:['¿Qué te aporta esta relación — y qué te pide?', '¿Estás presente de verdad y de forma honesta en tu relación principal?', '¿Qué cambio haría que esta relación se sintiera más satisfactoria?'],           desc:'Piensa en la relación más importante de tu vida — una pareja, un amigo cercano u otra persona significativa. ¿Cómo valorarías su calidad ahora mismo? Un 10 es una relación llena de confianza, alegría y crecimiento mutuo. Un 1 es una relación dolorosa, estancada o inexistente. Sé honesto sobre dónde está realmente, no solo donde desearías que estuviera.' },
+      { label:'Vida Social', questions:['¿Qué tipo de conexión social necesitas más ahora mismo?', '¿Hay amistades que hayas descuidado sin darte cuenta?', '¿Qué te impide conectar más abiertamente con los demás?'],          desc:'¿Qué tan rica y satisfactoria es tu vida social? No se trata solo de frecuencia — sino de la comodidad y autenticidad con la que conectas con las personas. Algunos disfrutan en cada reunión; otros encuentran las situaciones sociales agotadoras. Considera tanto la calidad de tus conexiones como la confianza que sientes en entornos sociales.' },
+      { label:'Actitud', questions:['¿Qué historia te estás contando sobre tu vida ahora mismo?', 'Cuando las cosas salen mal, ¿cuál es tu respuesta automática?', '¿Qué haría diferente una versión más optimista de ti hoy?'],              desc:'Tu actitud lo moldea todo. ¿Tu vaso está medio lleno o medio vacío? Un 10 significa que naturalmente te enfocas en las posibilidades, encuentras soluciones cuando algo sale mal y afrontas la vida con optimismo y resiliencia. Una puntuación baja indica que la negatividad y el pesimismo son patrones que te frenan y afectan a todas las demás áreas de tu vida.' },
+      { label:'Carrera', questions:['¿Qué te haría sentir genuinamente entusiasmado de ir a trabajar cada día?', '¿Estás creciendo en tu rol actual o te sientes estancado?', 'Si pudieras cambiar una cosa de tu situación laboral, ¿qué sería?'],              desc:'Pasamos una gran parte de nuestras vidas trabajando — ¿cómo se siente la tuya? Un 10 significa que estás lleno de energía, con propósito, y que casi harías tu trabajo sin cobrar. Un 1 significa que temes los lunes por la mañana. Si no estás trabajando ahora, puntúa qué tan claro y motivado te sientes respecto a lo que quieres hacer y los pasos que estás tomando para lograrlo.' }
     ]
   }
 };
@@ -463,6 +661,18 @@ function applyLang() {
   t.areas.forEach((a,i) => {
     document.getElementById('lbl'+i).textContent = a.label;
   });
+  // keep modal strings in sync if language toggled while modal is open
+  document.getElementById('txt-reset-title').textContent   = t.resetTitle;
+  document.getElementById('txt-reset-body').textContent    = t.resetBody;
+  document.getElementById('txt-reset-cancel').textContent  = t.resetCancel;
+  document.getElementById('txt-reset-confirm').textContent = t.resetConfirm;
+
+  /* Instructions text */
+  setInstructionsText();
+  refreshInterpretation();
+  if (reflectOpen) renderReflect();
+  if (goalsOpen) renderGoals();
+  if (historyOpen) renderHistory();
 
   /* Radar chart labels */
   chart.data.labels = t.areas.map(a => a.label);
@@ -594,11 +804,32 @@ function upd(i, val) {
   refreshChart();
   refreshAvg();
   showDesc(i);
+  refreshInterpretation();
+  if (reflectOpen) renderReflect();
 }
 
 /* ══════════════════════════════════════════
    RESET
 ══════════════════════════════════════════ */
+function openResetModal() {
+  const t = LANGS[lang];
+  document.getElementById('txt-reset-title').textContent   = t.resetTitle;
+  document.getElementById('txt-reset-body').textContent    = t.resetBody;
+  document.getElementById('txt-reset-cancel').textContent  = t.resetCancel;
+  document.getElementById('txt-reset-confirm').textContent = t.resetConfirm;
+  document.getElementById('resetOverlay').style.display = 'flex';
+}
+
+function closeResetModal(e) {
+  if (e && e.target !== document.getElementById('resetOverlay')) return;
+  document.getElementById('resetOverlay').style.display = 'none';
+}
+
+function confirmReset() {
+  document.getElementById('resetOverlay').style.display = 'none';
+  doReset();
+}
+
 function doReset() {
   for (let i=0;i<8;i++) {
     vals[i]=5;
@@ -617,6 +848,10 @@ function doReset() {
     const hint = id.includes('Mobile') ? t.hintMobile : t.hintDesktop;
     b.innerHTML = '<div class="desc-box-hint">'+hint+'</div>';
   });
+  for (let i=0;i<8;i++) { goals[i]=5; intentions[i]=''; }
+  refreshInterpretation();
+  if (reflectOpen) renderReflect();
+  if (goalsOpen) renderGoals();
 }
 
 /* ══════════════════════════════════════════
@@ -707,7 +942,83 @@ function doDownloadPDF() {
     y+=rowH;
   });
 
-  /* Footer */
+  /* ── Page 2: Goals & Reflection ── */
+  const hasGoals = goals.some((g,i) => g!==5 || intentions[i]!=='');
+  const lowForPdf = vals.map((v,i)=>({i,v})).filter(x=>x.v<=6);
+  if (hasGoals || lowForPdf.length > 0) {
+    doc.addPage();
+    doc.setFillColor(...bgColor);
+    doc.rect(0,0,210,297,'F');
+
+    let py = 22;
+
+    if (hasGoals) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.setTextColor(...titleColor);
+      doc.text(t.pdfGoalsLbl, margin, py); py+=7;
+      doc.setLineWidth(0.3); doc.setDrawColor(...separatorColor);
+      doc.line(margin,py,margin+contentW,py); py+=5;
+
+      const gLabelW=52, gTargetW=18;
+      doc.setFontSize(7.5); doc.setTextColor(...mutedColor);
+      doc.text(t.pdfArea,        margin,            py);
+      doc.text(t.pdfGoalTarget,  margin+gLabelW,    py);
+      doc.text(t.pdfGoalIntent,  margin+gLabelW+gTargetW+4, py);
+      py+=4;
+      doc.line(margin,py,margin+contentW,py); py+=4;
+
+      t.areas.forEach((area,i)=>{
+        if (py>270) return;
+        const gv=goals[i]; const [gr,gg,gb]=scRGB(gv);
+        const curr=vals[i]; const [cr2,cg2,cb2]=scRGB(curr);
+        if (i%2===0){doc.setFillColor(...rowEvenColor);doc.roundedRect(margin-2,py-3,contentW+4,9,1.5,1.5,'F');}
+        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...labelColor);
+        doc.text(area.label, margin, py+2);
+        doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(gr,gg,gb);
+        doc.text(String(gv), margin+gLabelW+5, py+2);
+        doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...labelColor);
+        const intentTxt = intentions[i] || '—';
+        const maxIntW = contentW - gLabelW - gTargetW - 8;
+        let itext = intentTxt;
+        while(doc.getTextWidth(itext)>maxIntW && itext.length>3) itext=itext.slice(0,-1);
+        if(itext!==intentTxt) itext=itext.trimEnd()+'…';
+        doc.text(itext, margin+gLabelW+gTargetW+4, py+2);
+        py+=9;
+      });
+      py+=6;
+    }
+
+    if (lowForPdf.length > 0) {
+      if (py > 220) { doc.addPage(); doc.setFillColor(...bgColor); doc.rect(0,0,210,297,'F'); py=22; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.setTextColor(...titleColor);
+      doc.text(t.pdfReflectLbl, margin, py); py+=7;
+      doc.setLineWidth(0.3); doc.setDrawColor(...separatorColor);
+      doc.line(margin,py,margin+contentW,py); py+=5;
+
+      lowForPdf.sort((a,b)=>a.v-b.v).forEach(({i,v})=>{
+        if (py>270) return;
+        const area=t.areas[i]; const [r2,g2,b2]=scRGB(v);
+        doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(r2,g2,b2);
+        doc.text(`${area.label}  ${v}/10`, margin, py); py+=5;
+        (area.questions||[]).forEach(q=>{
+          if(py>274) return;
+          doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...labelColor);
+          const lines=doc.splitTextToSize('• '+q, contentW-6);
+          lines.forEach(l=>{doc.text(l,margin+4,py);py+=4.5;});
+        });
+        py+=3;
+      });
+    }
+
+    // Footer page 2
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.setTextColor(...footerColor);
+    doc.text(t.pdfFooter, pageW/2, 286, {align:'center'});
+  }
+
+  /* Footer page 1 */
+  doc.setPage(1);
   doc.setFont('helvetica','normal'); doc.setFontSize(8);
   doc.setTextColor(...footerColor);
   doc.text(t.pdfFooter, pageW/2, 286, {align:'center'});
@@ -716,13 +1027,372 @@ function doDownloadPDF() {
 }
 
 /* ══════════════════════════════════════════
+   INSTRUCTIONS
+══════════════════════════════════════════ */
+const INSTRUCTIONS = {
+  en: `The Wheel of Life is one of the most powerful tools in coaching and self-reflection. It gives you an honest snapshot of how balanced your life is right now — across the areas that matter most.
+
+How to do it:
+1. Look at each of the 8 areas of life on the right panel.
+2. Tap any area to read its description and understand what it covers.
+3. Move the slider from 0 to 10 to rate your current level of satisfaction in that area — not where you want to be, but where you honestly are today.
+4. Watch your Wheel take shape in the chart. A balanced wheel rolls smoothly — an uneven one shows you exactly where to focus.
+5. Download your Wheel as a PDF to keep, share, or reflect on later.
+
+This exercise is valuable in many contexts:
+- Share it with your psychologist or coach before a session — it gives them a clear picture of where you are and where to focus.
+- Redo it after a period of therapy or personal work to measure your progress.
+- Use it as a monthly self-assessment to track how different areas of your life evolve over time.
+
+There are no right or wrong scores. Be honest with yourself — the more genuine your reflection, the more useful the exercise.`,
+  es: `La Rueda de la Vida es una de las herramientas más poderosas del coaching y la autorreflexión. Te da una imagen honesta de qué tan equilibrada está tu vida en este momento — en las áreas que más importan.
+
+Cómo hacerlo:
+1. Observa cada una de las 8 áreas de vida en el panel derecho.
+2. Toca cualquier área para leer su descripción y entender qué abarca.
+3. Mueve el control deslizante del 0 al 10 para valorar tu nivel actual de satisfacción en esa área — no dónde quieres estar, sino dónde estás honestamente hoy.
+4. Observa cómo tu Rueda toma forma en el gráfico. Una rueda equilibrada gira con suavidad — una desigual te muestra exactamente en qué áreas enfocarte.
+5. Descarga tu Rueda en PDF para guardarla, compartirla o reflexionar sobre ella más adelante.
+
+Este ejercicio es valioso en muchos contextos:
+- Compártelo con tu psicólogo o coach antes de una sesión — les da una imagen clara de dónde estás y en qué concentrarse.
+- Repítelo después de un período de terapia o trabajo personal para medir tu progreso.
+- Úsalo como autoevaluación mensual para observar cómo evolucionan las diferentes áreas de tu vida con el tiempo.
+
+No hay puntuaciones correctas ni incorrectas. Sé honesto contigo mismo — cuanto más genuina sea tu reflexión, más útil será el ejercicio.`
+};
+
+let instrOpen = false;
+
+function toggleInstructions() {
+  instrOpen = !instrOpen;
+  document.getElementById('instrContent').style.display = instrOpen ? 'block' : 'none';
+  document.getElementById('instrChevron').style.transform = instrOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function setInstructionsText() {
+  const text = INSTRUCTIONS[lang];
+  const lines = text.split('\n');
+  const p = document.getElementById('txt-instr-body');
+  p.innerHTML = lines.map(l => {
+    if (l.trim() === '') return '<br>';
+    return l.replace(/^(\d+\.)/, '<strong style="color:var(--text)">$1</strong>');
+  }).join('<br>');
+  document.getElementById('txt-instr-lbl').textContent = LANGS[lang].instrLbl;
+}
+
+/* ══════════════════════════════════════════
+   NEW STATE
+══════════════════════════════════════════ */
+const goals = [5,5,5,5,5,5,5,5];
+const intentions = ['','','','','','','',''];
+let reflectOpen = false;
+let goalsOpen   = false;
+let historyOpen = false;
+let compareChart = null;
+let compareBase  = null; // snapshot to compare with
+
+/* ══════════════════════════════════════════
+   GOALS PANEL
+══════════════════════════════════════════ */
+function toggleGoals() {
+  goalsOpen = !goalsOpen;
+  document.getElementById('goalsContent').style.display = goalsOpen ? 'block' : 'none';
+  document.getElementById('goalsChevron').style.transform = goalsOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (goalsOpen) renderGoals();
+}
+
+function paintGoalSlider(i, color) {
+  const sl  = document.getElementById('g'+i);
+  if (!sl) return;
+  const pct = (goals[i]/10)*100;
+  const empty = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  sl.style.background = 'linear-gradient(to right,'+color+' 0%,'+color+' '+pct+'%,'+empty+' '+pct+'%,'+empty+' 100%)';
+  const ex = document.getElementById('gth'+i);
+  if (ex) ex.remove();
+  const s = document.createElement('style');
+  s.id = 'gth'+i;
+  const border = isDark ? '#0e0e10' : '#f8f7f4';
+  s.textContent = '#g'+i+'::-webkit-slider-thumb{background:'+color+';box-shadow:0 0 6px '+color+'88;border-color:'+border+'}#g'+i+'::-moz-range-thumb{background:'+color+';border-color:'+border+'}';
+  document.head.appendChild(s);
+}
+
+function updGoal(i, val) {
+  goals[i] = parseInt(val);
+  const color = '#7c5ff0';
+  const lbl = document.getElementById('gv'+i);
+  if (lbl) lbl.textContent = val;
+  paintGoalSlider(i, color);
+}
+
+function updIntention(i, val) {
+  intentions[i] = val;
+}
+
+function renderGoals() {
+  const t = LANGS[lang];
+  const body = document.getElementById('goalsBody');
+  const focusAreas = LANGS[lang].areas
+    .map((area, i) => ({area, i}))
+    .filter(({i}) => vals[i] <= 6);
+
+  if (focusAreas.length === 0) {
+    body.innerHTML = `<div style="font-size:0.85rem;color:var(--muted);font-style:italic">${lang==='es'?'¡Todas las áreas superan el 6! Sigue así.':'All areas are above 6 — nothing to set goals for right now!'}</div>`;
+    return;
+  }
+  body.innerHTML = focusAreas.map(({area, i}) => {
+    const areaColor = sc(vals[i]);
+    return `<div class="goal-row" style="border-left:3px solid ${areaColor}">
+      <span class="goal-name" style="color:${areaColor}">${area.label}</span>
+      <span style="font-size:0.78rem;color:var(--muted);grid-column:1">${lang==='es'?'Ahora':'Now'}: <strong style="color:${areaColor}">${vals[i]}/10</strong></span>
+      <span class="goal-score-lbl" id="gv${i}" style="color:#7c5ff0">${goals[i]}</span>
+      <input type="range" min="0" max="10" step="1" value="${goals[i]}" id="g${i}" class="goal-range"
+        oninput="updGoal(${i},this.value)" style="-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;outline:none;cursor:pointer;display:block;width:100%">
+      <input type="text" class="goal-intent" id="gi${i}" placeholder="${t.goalPh}"
+        value="${intentions[i]}" oninput="updIntention(${i},this.value)">
+    </div>`;
+  }).join('');
+  focusAreas.forEach(({i}) => paintGoalSlider(i,'#7c5ff0'));
+}
+
+/* ══════════════════════════════════════════
+   INTERPRETATION CARD
+══════════════════════════════════════════ */
+function refreshInterpretation() {
+  const t   = LANGS[lang];
+  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const body = document.getElementById('interpretBody');
+
+  // Build overall message
+  let msg;
+  if (avg >= 7.5) msg = t.interpHighAvg.replace('{avg}', avg.toFixed(1));
+  else if (avg >= 5) msg = t.interpMidAvg.replace('{avg}', avg.toFixed(1));
+  else msg  = t.interpLowAvg.replace('{avg}', avg.toFixed(1));
+
+  const [r,g,b] = scRGB(avg);
+  let html = `<div style="margin-bottom:0.9rem;font-size:0.92rem;line-height:1.6;color:var(--text)">${msg}</div>`;
+
+  // Low areas
+  const low = vals.map((v,i)=>({i,v})).filter(x=>x.v<=6).sort((a,b)=>a.v-b.v).slice(0,3);
+  if (low.length === 0) {
+    html += `<div style="font-size:0.85rem;color:var(--muted);font-style:italic">${t.interpAllGood}</div>`;
+  } else {
+    html += `<div style="font-size:0.8rem;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.6rem">${t.interpFocus}</div>`;
+    low.forEach(({i,v}) => {
+      const areaColor = sc(v);
+      html += `<div class="interp-area">
+        <span class="interp-dot" style="background:${areaColor}"></span>
+        <div class="interp-text"><span class="interp-label">${LANGS[lang].areas[i].label}</span> — ${lang==='en'?'currently at':'actualmente en'} <span style="color:${areaColor};font-weight:500">${v}/10</span></div>
+      </div>`;
+    });
+  }
+  body.innerHTML = html;
+  document.getElementById('txt-interpret-lbl').textContent = t.interpretLbl;
+  document.getElementById('txt-reflect-lbl').textContent   = t.reflectLbl;
+  document.getElementById('txt-goals-lbl').textContent     = t.goalsLbl;
+  document.getElementById('txt-history-lbl').textContent   = t.historyLbl;
+}
+
+/* ══════════════════════════════════════════
+   REFLECTION QUESTIONS
+══════════════════════════════════════════ */
+function toggleReflect() {
+  reflectOpen = !reflectOpen;
+  document.getElementById('reflectContent').style.display = reflectOpen ? 'block' : 'none';
+  document.getElementById('reflectChevron').style.transform = reflectOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (reflectOpen) renderReflect();
+}
+
+function renderReflect() {
+  const t    = LANGS[lang];
+  const body = document.getElementById('reflectBody');
+  const lowAreas = t.areas.map((a,i)=>({a,i,v:vals[i]})).filter(x=>x.v<=6).sort((a,b)=>a.v-b.v);
+  if (lowAreas.length === 0) {
+    body.innerHTML = `<div style="font-size:0.85rem;color:var(--muted);font-style:italic">${t.reflectEmpty}</div>`;
+    return;
+  }
+  body.innerHTML = lowAreas.map(({a,i,v}) => {
+    const color = sc(v);
+    const qs = (a.questions||[]).map(q =>
+      `<div class="reflect-q" style="border-color:${color}">${q}</div>`).join('');
+    return `<div class="reflect-area">
+      <div class="reflect-area-name" style="color:${color}">${a.label} <span style="font-weight:400;color:var(--muted)">${v}/10</span></div>
+      ${qs}
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════ */
+const LS_KEY = 'wol_history_v1';
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch(e) { return []; }
+}
+function saveHistory(h) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(h)); } catch(e) {}
+}
+
+function toggleHistory() {
+  historyOpen = !historyOpen;
+  document.getElementById('historyContent').style.display = historyOpen ? 'block' : 'none';
+  document.getElementById('historyChevron').style.transform = historyOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (historyOpen) renderHistory();
+}
+
+function saveSnapshot() {
+  const h = loadHistory();
+  const now = new Date();
+  h.unshift({
+    id: now.getTime(),
+    date: now.toLocaleDateString(lang==='es'?'es-ES':'en-GB',{day:'numeric',month:'long',year:'numeric'}),
+    avg: (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1),
+    vals: [...vals],
+    goals: [...goals],
+    intentions: [...intentions],
+  });
+  saveHistory(h);
+  renderHistory();
+}
+
+function deleteSnapshot(id) {
+  let h = loadHistory().filter(e=>e.id!==id);
+  saveHistory(h);
+  compareBase = null;
+  renderHistory();
+}
+
+function loadSnapshot(id) {
+  const snap = loadHistory().find(e=>e.id===id);
+  if (!snap) return;
+  snap.vals.forEach((v,i) => {
+    vals[i]=v;
+    document.getElementById('s'+i).value=v;
+    document.getElementById('v'+i).textContent=v;
+    document.getElementById('v'+i).style.color=sc(v);
+    paintSlider(i,sc(v));
+  });
+  snap.goals.forEach((g,i) => { goals[i]=g; });
+  snap.intentions.forEach((t,i) => { intentions[i]=t; });
+  refreshChart();
+  refreshAvg();
+  refreshInterpretation();
+  if (reflectOpen) renderReflect();
+  if (goalsOpen) renderGoals();
+}
+
+function startCompare(id) {
+  const snap = loadHistory().find(e=>e.id===id);
+  if (!snap) return;
+  compareBase = snap;
+  openCompare();
+}
+
+function renderHistory() {
+  const t    = LANGS[lang];
+  const body = document.getElementById('historyBody');
+  const h    = loadHistory();
+  document.getElementById('txt-history-intro').innerHTML = t.historyIntro
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/⚠️/g, '<span style="color:#eab308">⚠️</span>');
+  document.getElementById('btn-save-snap').textContent     = t.historySave;
+  if (h.length === 0) {
+    body.innerHTML = `<div style="font-size:0.85rem;color:var(--hint);font-style:italic">${t.historyEmpty}</div>`;
+    return;
+  }
+  body.innerHTML = h.map(e => {
+    const avgColor = sc(parseFloat(e.avg));
+    const showCompare = h.length >= 2;
+    return `<div class="hist-entry">
+      <div class="hist-date">${e.date}</div>
+      <div class="hist-avg" style="color:${avgColor}">${e.avg}</div>
+      <div class="hist-btns">
+        <button class="hist-btn" onclick="loadSnapshot(${e.id})">${t.historyLoad}</button>
+        ${showCompare ? `<button class="hist-btn" onclick="startCompare(${e.id})">${t.historyCompare}</button>` : ''}
+        <button class="hist-btn danger" onclick="deleteSnapshot(${e.id})">${t.historyDel}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   COMPARISON MODAL
+══════════════════════════════════════════ */
+function openCompare() {
+  if (!compareBase) return;
+  const t = LANGS[lang];
+  document.getElementById('txt-compare-title').textContent = t.compareLbl;
+  document.getElementById('compareOverlay').style.display  = 'flex';
+
+  // Destroy previous chart
+  if (compareChart) { compareChart.destroy(); compareChart = null; }
+
+  const labels = LANGS[lang].areas.map(a=>a.label);
+  const g = isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)';
+  const lc= isDark?'#a1a1aa':'#52525b';
+
+  compareChart = new Chart(document.getElementById('compareChart').getContext('2d'),{
+    type:'radar',
+    data:{
+      labels,
+      datasets:[
+        { label:compareBase.date, data:[...compareBase.vals],
+          backgroundColor:'rgba(239,68,68,0.12)', borderColor:'#ef4444',
+          borderWidth:2, pointBackgroundColor:'#ef4444', pointRadius:4 },
+        { label:t.historyCompareCurrent, data:[...vals],
+          backgroundColor:'rgba(124,95,240,0.12)', borderColor:'#7c5ff0',
+          borderWidth:2, pointBackgroundColor:'#7c5ff0', pointRadius:4 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:10,ticks:{display:false},
+        grid:{color:g},angleLines:{color:g},
+        pointLabels:{color:lc,font:{size:10,family:'DM Sans',weight:'500'},padding:8}}}
+    }
+  });
+
+  // Legend
+  document.getElementById('compareLegend').innerHTML = `
+    <span class="compare-leg"><span class="compare-leg-line" style="background:#ef4444"></span>${compareBase.date}</span>
+    <span class="compare-leg"><span class="compare-leg-line" style="background:#7c5ff0"></span>${t.historyCompareCurrent}</span>`;
+
+  // Score table
+  const tableEl = document.getElementById('compareScoreTable');
+  let tableHtml = `<span style="color:var(--muted);font-weight:500">${lang==='es'?'Área':'Area'}</span>
+    <span style="color:#ef4444;font-weight:500">${compareBase.date.split(' ').slice(-1)[0]||compareBase.date}</span>
+    <span style="color:#7c5ff0;font-weight:500">${t.historyCompareCurrent}</span>`;
+  labels.forEach((lbl,i) => {
+    const old = compareBase.vals[i];
+    const cur = vals[i];
+    const diff = cur - old;
+    const arrow = diff > 0 ? ' ▲' : diff < 0 ? ' ▼' : '';
+    const diffColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : 'var(--muted)';
+    tableHtml += `<span style="color:var(--muted)">${lbl}</span>
+      <span style="color:${sc(old)}">${old}</span>
+      <span style="color:${sc(cur)}">${cur}<span style="color:${diffColor};font-size:0.75rem">${arrow}</span></span>`;
+  });
+  tableEl.innerHTML = tableHtml;
+}
+
+function closeCompare(e) {
+  if (e && e.target !== document.getElementById('compareOverlay')) return;
+  document.getElementById('compareOverlay').style.display = 'none';
+}
+
+/* ══════════════════════════════════════════
    INIT
 ══════════════════════════════════════════ */
+setInstructionsText();
 for (let i=0;i<8;i++) {
   paintSlider(i,sc(5));
   document.getElementById('v'+i).style.color=sc(5);
 }
 document.getElementById('avgNum').style.color=sc(5);
+refreshInterpretation();
+renderHistory();
 </script>
 </body>
 </html>
