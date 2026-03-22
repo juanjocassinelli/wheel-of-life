@@ -223,7 +223,7 @@
     width: 100%;
     max-width: 960px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 0.9rem;
     margin-top: 1.25rem;
   }
@@ -521,6 +521,7 @@
 <div class="actions" style="margin-top:1.25rem">
   <button class="btn btn-ghost"   id="btn-reset"    onclick="openResetModal()">&#8635; Reset</button>
   <button class="btn btn-purple"  id="btn-download" onclick="doDownloadPDF()">Download PDF &darr;</button>
+  <button class="btn btn-complete" id="btn-save-notify" onclick="saveAndNotify()">&#10003; Save &amp; notify</button>
 </div>
 
 <footer>
@@ -560,6 +561,7 @@ const LANGS = {
     hintDesktop: 'Click any area above to read its description.',
     reset:       '↺ Reset',
     download:    'Download PDF ↓',
+    saveNotify:  'Save & notify',
     themeLight:  'Light',
     themeDark:   'Dark',
     langSwitch:  'Español',
@@ -630,6 +632,7 @@ const LANGS = {
     hintDesktop: 'Haz clic en cualquier área para leer su descripción.',
     reset:       '↺ Reiniciar',
     download:    'Descargar PDF ↓',
+    saveNotify:  'Guardar y notificar',
     themeLight:  'Claro',
     themeDark:   'Oscuro',
     langSwitch:  'English',
@@ -1534,7 +1537,7 @@ async function sendMagicLink() {
   btn.textContent = lang === 'es' ? 'Enviando…' : 'Sending…';
   const { error } = await db.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.href.split('#')[0] }
+    options: { emailRedirectTo: 'https://juanjocassinelli.github.io/wheel-of-life/' }
   });
   if (error) {
     msg.style.color = '#ef4444';
@@ -1580,6 +1583,49 @@ async function authSignOut() {
   await db.auth.signOut();
   const ub = document.getElementById('userBar');
   if (ub) ub.style.display = 'none';
+}
+
+
+async function saveAndNotify() {
+  if (!currentUser) {
+    alert(lang === 'es' ? 'Inicia sesión primero.' : 'Please sign in first.');
+    return;
+  }
+  const btn = document.getElementById('btn-save-notify');
+  btn.disabled = true;
+  btn.textContent = lang === 'es' ? 'Guardando…' : 'Saving…';
+
+  // Save snapshot first
+  await saveSnapshot();
+
+  // Wait briefly for cloudId to be set
+  await new Promise(r => setTimeout(r, 1500));
+
+  // Now mark complete and notify
+  const h = loadHistory();
+  if (h.length === 0 || !h[0].cloudId) {
+    btn.disabled = false;
+    btn.innerHTML = '&#10003; Save &amp; notify';
+    alert(lang === 'es' ? 'Error al guardar. Inténtalo de nuevo.' : 'Error saving. Please try again.');
+    return;
+  }
+  const latest = h[0];
+  await db.from('wheel_snapshots').update({ completed: true }).eq('id', latest.cloudId);
+  await db.from('notifications').insert({
+    user_id: currentUser.id,
+    type: 'wheel',
+    snapshot_id: latest.cloudId,
+  });
+  latest.completed = true;
+  h[0] = latest;
+  saveHistory(h);
+  if (historyOpen) renderHistory();
+
+  btn.disabled = false;
+  btn.innerHTML = '&#10003; Save &amp; notify';
+  alert(lang === 'es'
+    ? '✓ ¡Guardado y notificado! Tu especialista ha sido avisado.'
+    : '✓ Saved and notified! Your practitioner has been alerted.');
 }
 
 async function markComplete() {
