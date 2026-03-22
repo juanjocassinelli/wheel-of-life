@@ -70,7 +70,7 @@
     justify-content: center;
     align-items: flex-start;
     position: relative;
-    margin-bottom: 2rem;
+    margin-bottom: 0.75rem;
   }
 
   header { text-align: center; }
@@ -326,9 +326,17 @@
     border-radius: 50%; width: 36px; height: 36px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; font-size: 1rem; transition: all 0.2s; color: var(--muted);
-    flex-shrink: 0;
+    position: absolute; right: 0; top: 0; flex-shrink: 0;
   }
   .cog-btn:hover { transform: rotate(45deg); color: var(--text); }
+  /* Welcome banner */
+  .welcome-banner {
+    width: 100%; max-width: 960px;
+    font-size: 0.95rem; color: var(--muted);
+    margin-bottom: 1.5rem; text-align: center;
+    min-height: 1.4rem;
+  }
+  .welcome-banner strong { color: var(--text); font-weight: 500; }
   #settingsPanel {
     position: fixed; top: 0; right: 0; bottom: 0; width: min(320px, 100vw);
     background: var(--surface); border-left: 1px solid var(--border);
@@ -379,8 +387,7 @@
   .bio-label { font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
   .bio-save-btn { background: #7c5ff0; color: #fff; border: none; border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: background 0.15s; }
   .bio-save-btn:hover { background: #6d50e0; }
-  .bio-skip { background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; cursor: pointer; text-align: center; }
-  .bio-skip:hover { color: var(--text); }
+  select.bio-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2371717a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
 
 </style>
 </head>
@@ -412,14 +419,14 @@
 </div>
 
 
-<div class="header-row">  <header>
+<div class="header-row">
+  <header>
     <h1 id="txt-title">Wheel of Life</h1>
     <p id="txt-subtitle">Rate each area of your life from 0 to 10</p>
   </header>
-  <div class="controls"><div class="user-bar" id="userBar" style="display:none"><span id="userNameDisplay"></span></div>
-  </div>
-<button class="cog-btn" onclick="openSettings()" title="Settings">⚙️</button>
+  <button class="cog-btn" onclick="openSettings()" title="Settings">⚙️</button>
 </div>
+<div class="welcome-banner" id="welcomeBanner"></div>
 
 <!-- Instructions panel -->
 <div style="width:100%;max-width:960px;margin-bottom:1.25rem">
@@ -575,11 +582,13 @@
     </div>
     <div>
       <div class="settings-section-title" id="stg-data">Data</div>
-      <button class="settings-btn" id="stg-export-btn" onclick="exportHistory()">⬇ Export backup</button>
-      <label class="settings-btn" style="cursor:pointer;text-align:center">
-        <span id="stg-import-btn">⬆ Import backup</span>
-        <input type="file" accept=".json" style="display:none" onchange="importHistory(this)">
-      </label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+        <button class="settings-btn" id="stg-export-btn" onclick="exportHistory()" style="margin-bottom:0">⬇ Export</button>
+        <label class="settings-btn" style="cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;margin-bottom:0">
+          <span id="stg-import-btn">⬆ Import</span>
+          <input type="file" accept=".json" style="display:none" onchange="importHistory(this)">
+        </label>
+      </div>
     </div>
     <div>
       <div class="settings-section-title" id="stg-session">Session</div>
@@ -592,7 +601,7 @@
 <div id="bioModal">
   <div class="bio-inner">
     <div class="bio-title" id="bio-title">Tell us about yourself</div>
-    <div class="bio-sub" id="bio-sub">This information helps personalise your experience. You can update it anytime in Settings.</div>
+    <div class="bio-sub" id="bio-sub">Please complete your profile to continue. You can update this anytime in Settings.</div>
     <div class="bio-row">
       <div>
         <div class="bio-label" id="bio-fn-label">First name</div>
@@ -605,10 +614,20 @@
     </div>
     <div>
       <div class="bio-label" id="bio-dob-label">Date of birth</div>
-      <input type="date" class="bio-input" id="bioDob">
+      <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:0.5rem">
+        <select class="bio-input" id="bioDobDay" style="cursor:pointer">
+          <option value="" id="bio-day-ph">Day</option>
+        </select>
+        <select class="bio-input" id="bioDobMonth" style="cursor:pointer">
+          <option value="" id="bio-month-ph">Month</option>
+        </select>
+        <select class="bio-input" id="bioDobYear" style="cursor:pointer">
+          <option value="" id="bio-year-ph">Year</option>
+        </select>
+      </div>
     </div>
-    <button class="bio-save-btn" id="bio-save-btn" onclick="saveBio()">Save</button>
-    <button class="bio-skip" id="bio-skip-btn" onclick="closeBioModal()">Skip for now</button>
+    <div id="bio-error" style="font-size:0.82rem;color:#ef4444;min-height:1rem"></div>
+    <button class="bio-save-btn" id="bio-save-btn" onclick="saveBio()">Save & continue</button>
   </div>
 </div>
 
@@ -794,6 +813,7 @@ function toggleTheme() {
   updateChartTheme();
   repaintAllSliders();
   updateSettingsValues();
+  updateWelcomeBanner();
 }
 
 function updateChartTheme() {
@@ -1588,7 +1608,7 @@ async function handleAuthState(session) {
   if (emailEl) emailEl.textContent = session.user.email;
   const ub = document.getElementById('userBar');
   if (ub) ub.style.display = 'flex';
-  updateUserBar();
+  updateWelcomeBanner();
   await loadCloudHistory();
   checkAndPromptBio(userProfile);
 }
@@ -1796,49 +1816,106 @@ function updateSettingsValues() {
 ══════════════════════════════════════════ */
 function openBioModal() {
   const isEN = lang === 'en';
-  document.getElementById('bio-title').textContent    = isEN ? 'Tell us about yourself'  : 'Cuéntanos sobre ti';
-  document.getElementById('bio-sub').textContent      = isEN ? 'This information helps personalise your experience. You can update it anytime in Settings.' : 'Esta información ayuda a personalizar tu experiencia. Puedes actualizarla en Ajustes.';
-  document.getElementById('bio-fn-label').textContent = isEN ? 'First name'    : 'Nombre';
-  document.getElementById('bio-ln-label').textContent = isEN ? 'Last name'     : 'Apellidos';
-  document.getElementById('bio-dob-label').textContent= isEN ? 'Date of birth' : 'Fecha de nacimiento';
-  document.getElementById('bio-save-btn').textContent = isEN ? 'Save'          : 'Guardar';
-  document.getElementById('bio-skip-btn').textContent = isEN ? 'Skip for now'  : 'Saltar por ahora';
+  document.getElementById('bio-title').textContent     = isEN ? 'Tell us about yourself'  : 'Cuéntanos sobre ti';
+  document.getElementById('bio-sub').textContent       = isEN ? 'Please complete your profile to continue. You can update this anytime in Settings.' : 'Por favor completa tu perfil para continuar. Puedes actualizarlo en Ajustes.';
+  document.getElementById('bio-fn-label').textContent  = isEN ? 'First name'    : 'Nombre';
+  document.getElementById('bio-ln-label').textContent  = isEN ? 'Last name'     : 'Apellidos';
+  document.getElementById('bio-dob-label').textContent = isEN ? 'Date of birth' : 'Fecha de nacimiento';
+  document.getElementById('bio-save-btn').textContent  = isEN ? 'Save & continue' : 'Guardar y continuar';
+
+  // Populate DOB selects
+  const dayEl   = document.getElementById('bioDobDay');
+  const monthEl = document.getElementById('bioDobMonth');
+  const yearEl  = document.getElementById('bioDobYear');
+
+  // Days
+  dayEl.innerHTML = `<option value="">${isEN ? 'Day' : 'Día'}</option>`;
+  for (let d = 1; d <= 31; d++) dayEl.innerHTML += `<option value="${String(d).padStart(2,'0')}">${d}</option>`;
+
+  // Months
+  const months = isEN
+    ? ['January','February','March','April','May','June','July','August','September','October','November','December']
+    : ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  monthEl.innerHTML = `<option value="">${isEN ? 'Month' : 'Mes'}</option>`;
+  months.forEach((m, i) => monthEl.innerHTML += `<option value="${String(i+1).padStart(2,'0')}">${m}</option>`);
+
+  // Years
+  const curYear = new Date().getFullYear();
+  yearEl.innerHTML = `<option value="">${isEN ? 'Year' : 'Año'}</option>`;
+  for (let y = curYear - 10; y >= curYear - 100; y--) yearEl.innerHTML += `<option value="${y}">${y}</option>`;
+
   // Pre-fill if data exists
   if (userProfile) {
     document.getElementById('bioFirstName').value = userProfile.first_name || '';
     document.getElementById('bioLastName').value  = userProfile.last_name  || '';
-    document.getElementById('bioDob').value       = userProfile.dob        || '';
+    if (userProfile.dob) {
+      const parts = userProfile.dob.split('-');
+      if (parts.length === 3) {
+        yearEl.value  = parts[0];
+        monthEl.value = parts[1];
+        dayEl.value   = parts[2];
+      }
+    }
   }
+  document.getElementById('bio-error').textContent = '';
   document.getElementById('bioModal').classList.add('open');
 }
 
-function closeBioModal() {
+function closeBioModal(force=false) {
+  // Bio is required — only close if profile is complete or forced
+  if (!force && (!userProfile || !userProfile.first_name)) return;
   document.getElementById('bioModal').classList.remove('open');
 }
 
 async function saveBio() {
   if (!currentUser) return;
+  const isEN       = lang === 'en';
   const first_name = document.getElementById('bioFirstName').value.trim();
   const last_name  = document.getElementById('bioLastName').value.trim();
-  const dob        = document.getElementById('bioDob').value;
+  const day        = document.getElementById('bioDobDay').value;
+  const month      = document.getElementById('bioDobMonth').value;
+  const year       = document.getElementById('bioDobYear').value;
+  const errEl      = document.getElementById('bio-error');
+
+  // Validate required
+  if (!first_name) {
+    errEl.textContent = isEN ? 'Please enter your first name.' : 'Por favor introduce tu nombre.';
+    document.getElementById('bioFirstName').focus();
+    return;
+  }
+  if (!last_name) {
+    errEl.textContent = isEN ? 'Please enter your last name.' : 'Por favor introduce tus apellidos.';
+    document.getElementById('bioLastName').focus();
+    return;
+  }
+  if (!day || !month || !year) {
+    errEl.textContent = isEN ? 'Please select your date of birth.' : 'Por favor selecciona tu fecha de nacimiento.';
+    return;
+  }
+  errEl.textContent = '';
+  const dob = `${year}-${month}-${day}`;
   const { data, error } = await db.from('profiles')
     .update({ first_name, last_name, dob, name: (first_name + ' ' + last_name).trim() })
     .eq('id', currentUser.id)
     .select().single();
   if (!error && data) {
     userProfile = data;
-    updateUserBar();
+    updateWelcomeBanner();
   }
-  closeBioModal();
+  closeBioModal(true);
 }
 
-function updateUserBar() {
-  const nameEl = document.getElementById('userNameDisplay');
-  if (!nameEl) return;
-  if (userProfile && (userProfile.first_name || userProfile.name)) {
-    nameEl.textContent = userProfile.first_name || userProfile.name;
+function updateUserBar() {} // legacy — kept for safety
+
+function updateWelcomeBanner() {
+  const banner = document.getElementById('welcomeBanner');
+  if (!banner) return;
+  const isEN = lang === 'en';
+  if (userProfile && userProfile.first_name) {
+    const greeting = isEN ? 'Welcome back,' : 'Bienvenido/a,';
+    banner.innerHTML = `${greeting} <strong>${userProfile.first_name}</strong>`;
   } else if (currentUser) {
-    nameEl.textContent = currentUser.email;
+    banner.innerHTML = '';
   }
 }
 
