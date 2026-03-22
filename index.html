@@ -835,42 +835,73 @@ function toggleLang() {
 
 function applyLang() {
   const t = LANGS[lang];
+  const isEN = lang === 'en';
   document.documentElement.lang = lang;
 
-  document.getElementById('txt-title').textContent    = t.title;
-  document.getElementById('txt-subtitle').textContent = t.subtitle;
-  document.getElementById('txt-your-wheel').textContent   = t.yourWheel;
-  document.getElementById('txt-your-ratings').textContent = t.yourRatings;
-  document.getElementById('txt-avg-lbl').textContent  = t.avgLbl;
-  document.getElementById('txt-critical').textContent = t.critical;
-  document.getElementById('txt-growing').textContent  = t.growing;
-  document.getElementById('txt-thriving').textContent = t.thriving;
-  document.getElementById('btn-reset').textContent    = t.reset;
-  document.getElementById('btn-download').textContent = t.download;
-  updateSettingsValues();
-  document.getElementById('txt-footer').innerHTML     = t.footer;
+  /* ── Main UI ── */
+  document.getElementById('txt-title').textContent         = t.title;
+  document.getElementById('txt-subtitle').textContent      = t.subtitle;
+  document.getElementById('txt-your-wheel').textContent    = t.yourWheel;
+  document.getElementById('txt-your-ratings').textContent  = t.yourRatings;
+  document.getElementById('txt-avg-lbl').textContent       = t.avgLbl;
+  document.getElementById('txt-critical').textContent      = t.critical;
+  document.getElementById('txt-growing').textContent       = t.growing;
+  document.getElementById('txt-thriving').textContent      = t.thriving;
+  document.getElementById('btn-reset').textContent         = t.reset;
+  document.getElementById('btn-download').textContent      = t.download;
+  document.getElementById('btn-save-notify').innerHTML     = '&#10003; ' + (isEN ? 'Save &amp; notify' : 'Guardar y notificar');
+  document.getElementById('txt-footer').innerHTML          = t.footer;
 
-  /* Area labels on sliders */
+  /* ── Area labels on sliders ── */
   t.areas.forEach((a,i) => {
     document.getElementById('lbl'+i).textContent = a.label;
   });
-  // keep modal strings in sync if language toggled while modal is open
+
+  /* ── Reset modal ── */
   document.getElementById('txt-reset-title').textContent   = t.resetTitle;
   document.getElementById('txt-reset-body').textContent    = t.resetBody;
   document.getElementById('txt-reset-cancel').textContent  = t.resetCancel;
   document.getElementById('txt-reset-confirm').textContent = t.resetConfirm;
 
-  /* Instructions text */
+  /* ── Auth overlay ── */
+  const authSub = document.getElementById('authSubText');
+  if (authSub) authSub.textContent = isEN ? 'Enter your email to receive a sign-in link' : 'Introduce tu email para recibir un enlace de acceso';
+  const authBtn = document.getElementById('authBtn');
+  if (authBtn && authBtn.textContent !== (isEN ? 'Sending…' : 'Enviando…'))
+    authBtn.textContent = isEN ? 'Send magic link' : 'Enviar enlace de acceso';
+  const authPending = document.getElementById('authPending');
+  if (authPending) authPending.innerHTML = isEN
+    ? 'Your access is pending approval.<br>Please contact your practitioner to activate your account.'
+    : 'Tu acceso está pendiente de aprobación.<br>Contacta con tu especialista para activar tu cuenta.';
+  const rememberLabel = document.querySelector('label.auth-remember');
+  if (rememberLabel) {
+    const cb = rememberLabel.querySelector('input');
+    rememberLabel.innerHTML = '';
+    if (cb) rememberLabel.appendChild(cb);
+    rememberLabel.appendChild(document.createTextNode(' ' + (isEN ? 'Keep me logged in on this device' : 'Mantener sesión iniciada en este dispositivo')));
+  }
+
+  /* ── Bio modal (if open) ── */
+  const bioModal = document.getElementById('bioModal');
+  if (bioModal && bioModal.classList.contains('open')) openBioModal();
+
+  /* ── Welcome banner ── */
+  updateWelcomeBanner();
+
+  /* ── Settings panel ── */
+  updateSettingsValues();
+
+  /* ── Instructions, interpretation, reflect, goals ── */
   setInstructionsText();
   refreshInterpretation();
   if (reflectOpen) renderReflect();
   if (goalsOpen) renderGoals();
 
-  /* Radar chart labels */
+  /* ── Radar chart labels ── */
   chart.data.labels = t.areas.map(a => a.label);
   chart.update('none');
 
-  /* Refresh description box if one is active */
+  /* ── Description box ── */
   if (activeDesc >= 0) {
     showDesc(activeDesc);
   } else {
