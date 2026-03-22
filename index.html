@@ -389,6 +389,28 @@
   .bio-save-btn:hover { background: #6d50e0; }
   select.bio-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2371717a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
 
+
+  /* ── Practitioner message banner ── */
+  #practitionerMsg {
+    width: 100%; max-width: 960px;
+    background: linear-gradient(135deg, rgba(124,95,240,0.13), rgba(124,95,240,0.06));
+    border: 1px solid rgba(124,95,240,0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: none;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1rem;
+    animation: msgSlideIn 0.35s ease;
+  }
+  @keyframes msgSlideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  #practitionerMsg .msg-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+  #practitionerMsg .msg-body { flex:1; }
+  #practitionerMsg .msg-from { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:rgba(124,95,240,0.9); margin-bottom:3px; }
+  #practitionerMsg .msg-text { font-size:0.88rem; color:var(--text); line-height:1.55; }
+  #practitionerMsg .msg-dismiss { background:none; border:none; color:var(--muted); font-size:1rem; cursor:pointer; padding:0 2px; flex-shrink:0; line-height:1; transition:color 0.15s; }
+  #practitionerMsg .msg-dismiss:hover { color:var(--text); }
+
 </style>
 <script>
   /* ── Pre-hide auth overlay if session exists (eliminates login flash) ── */
@@ -450,6 +472,14 @@
   <button class="cog-btn" onclick="openSettings()" title="Settings">⚙️</button>
 </div>
 <div class="welcome-banner" id="welcomeBanner"></div>
+<div id="practitionerMsg">
+  <span class="msg-icon">💬</span>
+  <div class="msg-body">
+    <div class="msg-from" id="msgFrom">Message from your practitioner</div>
+    <div class="msg-text" id="msgText"></div>
+  </div>
+  <button class="msg-dismiss" onclick="dismissPractitionerMsg()" title="Dismiss">✕</button>
+</div>
 
 <!-- Instructions panel -->
 <div style="width:100%;max-width:960px;margin-bottom:1.25rem">
@@ -842,6 +872,7 @@ function toggleTheme() {
   repaintAllSliders();
   updateSettingsValues();
   updateWelcomeBanner();
+  updateMsgBannerLang();
 }
 
 function updateChartTheme() {
@@ -1679,6 +1710,7 @@ async function handleAuthState(session) {
   updateWelcomeBanner();
   await loadCloudHistory();
   checkAndPromptBio(userProfile);
+  checkPractitionerMessage(userProfile);
 }
 
 db.auth.onAuthStateChange((_evt, session) => { handleAuthState(session); });
@@ -1975,6 +2007,13 @@ async function saveBio() {
 
 function updateUserBar() {} // legacy — kept for safety
 
+function updateMsgBannerLang() {
+  const fromEl = document.getElementById('msgFrom');
+  if (fromEl && document.getElementById('practitionerMsg').style.display !== 'none') {
+    fromEl.textContent = lang === 'en' ? 'Message from your practitioner' : 'Mensaje de tu especialista';
+  }
+}
+
 function updateWelcomeBanner() {
   const banner = document.getElementById('welcomeBanner');
   if (!banner) return;
@@ -1991,6 +2030,32 @@ async function checkAndPromptBio(profile) {
   // Show bio modal if first_name is empty
   if (!profile || !profile.first_name) {
     setTimeout(() => openBioModal(), 600);
+  }
+}
+
+
+/* ═══════════════════════════════════════
+   PRACTITIONER MESSAGE BANNER
+═══════════════════════════════════════ */
+async function checkPractitionerMessage(profile) {
+  if (!profile || !profile.practitioner_message) return;
+  const isEN = lang === 'en';
+  const fromEl = document.getElementById('msgFrom');
+  const textEl = document.getElementById('msgText');
+  const banner = document.getElementById('practitionerMsg');
+  if (!banner || !textEl) return;
+  if (fromEl) fromEl.textContent = isEN ? 'Message from your practitioner' : 'Mensaje de tu especialista';
+  textEl.textContent = profile.practitioner_message;
+  banner.style.display = 'flex';
+}
+
+async function dismissPractitionerMsg() {
+  const banner = document.getElementById('practitionerMsg');
+  if (banner) banner.style.display = 'none';
+  // Clear from database so it won't show again
+  if (currentUser) {
+    await db.from('profiles').update({ practitioner_message: null }).eq('id', currentUser.id);
+    if (userProfile) userProfile.practitioner_message = null;
   }
 }
 
