@@ -390,6 +390,29 @@
   select.bio-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2371717a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
 
 </style>
+<script>
+  /* ── Pre-hide auth overlay if session exists (eliminates login flash) ── */
+  (function() {
+    try {
+      const raw = localStorage.getItem('cafi-auth');
+      if (raw) {
+        const session = JSON.parse(raw);
+        if (session && (session.access_token || (session.currentSession && session.currentSession.access_token))) {
+          document.addEventListener('DOMContentLoaded', function() {
+            const o = document.getElementById('authOverlay');
+            if (o) o.classList.add('hidden');
+          });
+          // Also inject a style tag immediately so overlay is invisible
+          // even before DOMContentLoaded
+          const s = document.createElement('style');
+          s.textContent = '#authOverlay { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }';
+          s.id = 'preauth-hide';
+          document.head.appendChild(s);
+        }
+      }
+    } catch(e) {}
+  })();
+</script>
 </head>
 <body>
 
@@ -1631,6 +1654,9 @@ async function handleAuthState(session) {
   const overlay = document.getElementById('authOverlay');
   if (!session || !session.user) {
     currentUser = null; userProfile = null;
+    // Remove preload hide so login screen shows
+    const ph = document.getElementById('preauth-hide');
+    if (ph) ph.remove();
     overlay.classList.remove('hidden');
     return;
   }
@@ -1644,6 +1670,8 @@ async function handleAuthState(session) {
     return;
   }
   overlay.classList.add('hidden');
+  const ph = document.getElementById('preauth-hide');
+  if (ph) ph.remove();
   const emailEl = document.getElementById('userEmailDisplay');
   if (emailEl) emailEl.textContent = session.user.email;
   const ub = document.getElementById('userBar');
