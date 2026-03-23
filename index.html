@@ -435,6 +435,18 @@
     } catch(e) {}
   })();
 </script>
+<script>
+  /* ── Restore saved preferences before first paint ── */
+  (function() {
+    try {
+      const prefs = JSON.parse(localStorage.getItem('cafi_prefs') || '{}');
+      if (prefs.theme) document.documentElement.setAttribute('data-theme', prefs.theme);
+      if (prefs.lang)  document.documentElement.setAttribute('lang', prefs.lang);
+      // Expose for INIT to pick up before Supabase loads
+      window.__cafiPrefs = prefs;
+    } catch(e) {}
+  })();
+</script>
 </head>
 <body>
 
@@ -866,6 +878,7 @@ let lang = 'en';
 function toggleTheme() {
   isDark = !isDark;
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  savePrefs();
   const t = LANGS[lang];
   
   updateChartTheme();
@@ -889,6 +902,7 @@ function updateChartTheme() {
 ══════════════════════════════════════════ */
 function toggleLang() {
   lang = lang === 'en' ? 'es' : 'en';
+  savePrefs();
   applyLang();
 }
 
@@ -1643,6 +1657,7 @@ async function sendMagicLink() {
 
 function setAuthLang(l) {
   lang = l;
+  savePrefs();
   document.getElementById('authLangEN').classList.toggle('active', l === 'en');
   document.getElementById('authLangES').classList.toggle('active', l === 'es');
   const strings = {
@@ -1708,6 +1723,8 @@ async function handleAuthState(session) {
   if (emailEl) emailEl.textContent = session.user.email;
   const ub = document.getElementById('userBar');
   if (ub) ub.style.display = 'flex';
+  loadPrefs(userProfile);
+  applyLang();
   updateWelcomeBanner();
   await loadCloudHistory();
   checkAndPromptBio(userProfile);
@@ -2109,6 +2126,47 @@ async function stampOrgIfNeeded(userId, profile) {
   if (inv?.name && !profile.name) updates.name = inv.name;
   await db.from('profiles').update(updates).eq('id', userId);
   if (userProfile) userProfile.org_id = finalOrgId;
+}
+
+
+/* ═══════════════════════════════════════
+   PREFERENCES — persist theme & language
+═══════════════════════════════════════ */
+function savePrefs() {
+  const prefs = { theme: isDark ? 'dark' : 'light', lang };
+  // 1. Always save locally (instant, works offline)
+  try { localStorage.setItem('cafi_prefs', JSON.stringify(prefs)); } catch(e) {}
+  // 2. If logged in, sync to Supabase (survives device switches & Safari ITP)
+  if (currentUser) {
+    db.from('profiles')
+      .update({ pref_theme: prefs.theme, pref_lang: prefs.lang })
+      .eq('id', currentUser.id)
+      .then(() => {});  // fire-and-forget
+  }
+}
+
+function loadPrefs(profile) {
+  // Profile from Supabase takes priority (cross-device), fall back to localStorage
+  let theme = null, savedLang = null;
+  if (profile && profile.pref_theme) {
+    theme = profile.pref_theme;
+    savedLang = profile.pref_lang || null;
+    // Keep localStorage in sync
+    try { localStorage.setItem('cafi_prefs', JSON.stringify({ theme, lang: savedLang || lang })); } catch(e) {}
+  } else {
+    try {
+      const local = JSON.parse(localStorage.getItem('cafi_prefs') || '{}');
+      theme = local.theme || null;
+      savedLang = local.lang || null;
+    } catch(e) {}
+  }
+  if (theme) {
+    isDark = theme === 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+  if (savedLang && savedLang !== lang) {
+    lang = savedLang;
+  }
 }
 
 /* ══════════════════════════════════════════
