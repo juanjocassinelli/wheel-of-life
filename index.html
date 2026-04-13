@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -23,7 +24,7 @@
       min-height: 100vh;
       padding: 0 1rem 3rem;
     }
-    h1, h2, h3, .serif, .avg-num, .desc-box-title, .interp-label, .bio-title, .settings-title {
+    h1, h2, h3, .serif, .avg-num, .desc-box-title, .interp-label {
       font-family: 'Cormorant Garamond', serif;
       font-weight: 500;
       letter-spacing: -0.01em;
@@ -348,7 +349,7 @@
 
   <div class="actions">
     <button class="btn btn-ghost" id="btn-reset" onclick="resetAll()">↺ Reset</button>
-    <button class="btn btn-primary" id="btn-download" onclick="downloadPDF()">Download PDF ↓</button>
+    <button class="btn btn-primary" id="btn-download" onclick="downloadFullPDF()">Download PDF ↓</button>
   </div>
   <footer><span id="txt-footer">Made with love by Juanjo & Vanessa ❤️<br><span class="footer-caFi">A tool by CaFi — Tools by psychologists for psychologists</span></span></footer>
 </div>
@@ -396,7 +397,6 @@
 
   function getColor(v) { v=Math.min(10,Math.max(0,v)); if(v<=3) return '#C46B6B'; if(v<=6) return '#C2B35A'; return '#5C7257'; }
   function paintSlider(i) { let sl = document.getElementById('s'+i); if(!sl) return; let pct = vals[i]/10*100; sl.style.background = `linear-gradient(to right, ${getColor(vals[i])} 0%, ${getColor(vals[i])} ${pct}%, #EDE7D8 ${pct}%, #EDE7D8 100%)`; }
-  function updateAllSliders() { for(let i=0;i<8;i++) paintSlider(i); }
   function upd(i,val) { vals[i]=parseInt(val); document.getElementById('v'+i).innerText=vals[i]; document.getElementById('v'+i).style.color=getColor(vals[i]); paintSlider(i); refreshChart(); refreshAvg(); showDesc(i); refreshInterpretation(); if(reflectOpen) renderReflect(); if(goalsOpen) renderGoals(); saveDraft(); }
   function refreshChart() { chart.data.datasets[0].data=[...vals]; chart.data.datasets[0].pointBackgroundColor=vals.map(v=>getColor(v)); chart.update('none'); }
   function refreshAvg() { let avg=vals.reduce((a,b)=>a+b,0)/vals.length; document.getElementById('avgNum').innerText=avg.toFixed(1); document.getElementById('avgNum').style.color=getColor(avg); }
@@ -419,9 +419,110 @@
   function toggleInstructions() { let c=document.getElementById('instrContent'); c.style.display=c.style.display==='none'?'block':'none'; document.getElementById('instrChevron').style.transform=c.style.display==='block'?'rotate(180deg)':'rotate(0deg)'; }
   document.getElementById('instrContent').innerHTML="<p>The Wheel of Life gives you an honest snapshot of balance. Rate each area from 0–10, then reflect and set intentions.</p>";
   function initChart() { const ctx=document.getElementById('wChart').getContext('2d'); chart=new Chart(ctx,{type:'radar',data:{labels:LANGS.en.areas.map(a=>a.label),datasets:[{data:[...vals],backgroundColor:'rgba(92,114,87,0.12)',borderColor:'#8A9E84',borderWidth:2,pointBackgroundColor:vals.map(v=>getColor(v)),pointBorderColor:'transparent',pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:10,ticks:{display:false},grid:{color:'#EDE7D8'},angleLines:{color:'#EDE7D8'},pointLabels:{color:'#6B6B5E',font:{family:'DM Sans',size:11}}}}}}); }
-  function downloadPDF() { alert("PDF generation ready — full integration with jsPDF would export wheel, goals, reflections. (Demo placeholder) \nIn a complete version, this would create a multi-page PDF with chart, scores, goals and reflection questions."); }
+
+  // ======================= REAL PDF EXPORT =======================
+  async function downloadFullPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = 210, margin = 18, contentWidth = pageWidth - margin * 2;
+    const t = LANGS[lang];
+    
+    // Capture the radar chart as image
+    const canvas = document.getElementById('wChart');
+    const chartImg = await html2canvas(canvas, { scale: 2, backgroundColor: '#FDFAF4' });
+    const imgData = chartImg.toDataURL('image/png');
+    
+    // Page 1: Title, date, chart, scores table
+    doc.setFillColor(253, 250, 244); doc.rect(0, 0, 210, 297, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(24); doc.setTextColor(42, 42, 37);
+    doc.text(t.title, pageWidth / 2, 22, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(107, 107, 94);
+    const now = new Date(); doc.text(now.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-GB'), pageWidth / 2, 29, { align: 'center' });
+    // Chart image
+    const imgWidth = 90; const imgHeight = (chartImg.height * imgWidth) / chartImg.width;
+    doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, 35, imgWidth, imgHeight);
+    // Average
+    const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const avgColor = getColor(avg).replace('#',''); const r=parseInt(avgColor.slice(0,2),16), g=parseInt(avgColor.slice(2,4),16), b=parseInt(avgColor.slice(4,6),16);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(r,g,b);
+    doc.text(avg.toFixed(1), pageWidth / 2, 145, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 107, 94);
+    doc.text(t.pdfAvg, pageWidth / 2, 150, { align: 'center' });
+    // Scores table
+    let y = 162;
+    doc.setFontSize(7.5); doc.setTextColor(107, 107, 94);
+    doc.text(t.pdfArea, margin, y); doc.text(t.pdfScore, margin + 50, y); doc.text(t.pdfRating, margin + 80, y);
+    y += 3; doc.setDrawColor(237, 231, 216); doc.line(margin, y, margin + contentWidth, y); y += 5;
+    for (let i = 0; i < 8; i++) {
+      const area = t.areas[i]; const score = vals[i]; const color = getColor(score).replace('#',''); const rc=parseInt(color.slice(0,2),16), gc=parseInt(color.slice(2,4),16), bc=parseInt(color.slice(4,6),16);
+      if (i % 2 === 0) { doc.setFillColor(246, 242, 234); doc.roundedRect(margin - 2, y - 3, contentWidth + 4, 8, 1.5, 1.5, 'F'); }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(42, 42, 37);
+      doc.text(area.label, margin, y + 1.5);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(rc, gc, bc);
+      doc.text(String(score), margin + 50, y + 1.5);
+      doc.setFillColor(237, 231, 216); doc.roundedRect(margin + 75, y - 2, 35, 4, 1, 1, 'F');
+      if (score > 0) { doc.setFillColor(rc, gc, bc); doc.roundedRect(margin + 75, y - 2, (score / 10) * 35, 4, 1, 1, 'F'); }
+      y += 8;
+    }
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 107, 94);
+    doc.text(t.pdfFooter, pageWidth / 2, 286, { align: 'center' });
+    
+    // Page 2: Goals and reflections
+    const hasGoals = goals.some((g,i)=> g!==5 || intentions[i]!=='');
+    const lowIndices = vals.map((v,i)=>v<=6 ? i : -1).filter(i=>i!==-1);
+    if (hasGoals || lowIndices.length) {
+      doc.addPage();
+      doc.setFillColor(253, 250, 244); doc.rect(0, 0, 210, 297, 'F');
+      let py = 22;
+      if (hasGoals) {
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(42,42,37);
+        doc.text(t.pdfGoalsLbl, margin, py); py += 7;
+        doc.setDrawColor(237,231,216); doc.line(margin, py, margin+contentWidth, py); py += 5;
+        doc.setFontSize(7.5); doc.setTextColor(107,107,94);
+        doc.text(t.pdfArea, margin, py); doc.text(t.pdfGoalTarget, margin+50, py); doc.text(t.pdfGoalIntent, margin+70, py);
+        py += 4; doc.line(margin, py, margin+contentWidth, py); py += 4;
+        for (let i=0;i<8;i++) {
+          if (goals[i]===5 && !intentions[i]) continue;
+          const area = t.areas[i]; const goalVal = goals[i]; const intent = intentions[i] || '—';
+          const goalColor = getColor(goalVal).replace('#',''); const gr=parseInt(goalColor.slice(0,2),16), gg=parseInt(goalColor.slice(2,4),16), gb=parseInt(goalColor.slice(4,6),16);
+          if (i%2===0) { doc.setFillColor(246,242,234); doc.roundedRect(margin-2, py-3, contentWidth+4, 8, 1,1,'F'); }
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(42,42,37);
+          doc.text(area.label, margin, py+1.5);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(gr,gg,gb);
+          doc.text(String(goalVal), margin+50, py+1.5);
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(42,42,37);
+          let intentShort = intent.length > 45 ? intent.slice(0,42)+'…' : intent;
+          doc.text(intentShort, margin+70, py+1.5);
+          py += 9;
+        }
+        py += 6;
+      }
+      if (lowIndices.length) {
+        if (py > 230) { doc.addPage(); doc.setFillColor(253,250,244); doc.rect(0,0,210,297,'F'); py=22; }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(42,42,37);
+        doc.text(t.pdfReflectLbl, margin, py); py += 7;
+        doc.line(margin, py, margin+contentWidth, py); py += 5;
+        for (let idx of lowIndices) {
+          const area = t.areas[idx]; const score = vals[idx]; const col = getColor(score).replace('#',''); const cr=parseInt(col.slice(0,2),16), cg=parseInt(col.slice(2,4),16), cb=parseInt(col.slice(4,6),16);
+          if (py > 270) { doc.addPage(); doc.setFillColor(253,250,244); doc.rect(0,0,210,297,'F'); py=22; }
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(cr,cg,cb);
+          doc.text(`${area.label}  ${score}/10`, margin, py); py += 5;
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(42,42,37);
+          for (let q of area.questions) {
+            const lines = doc.splitTextToSize(`• ${q}`, contentWidth - 6);
+            lines.forEach(l => { doc.text(l, margin+4, py); py += 4.5; });
+          }
+          py += 3;
+        }
+      }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107,107,94);
+      doc.text(t.pdfFooter, pageWidth / 2, 286, { align: 'center' });
+    }
+    doc.save('wheel-of-life.pdf');
+  }
+
   restoreDraft(); initChart(); applyLanguage(); showDesc(0);
-  window.upd=upd; window.showDesc=showDesc; window.setLanguage=setLanguage; window.resetAll=resetAll; window.openResetModal=openResetModal; window.closeResetModal=closeResetModal; window.confirmReset=confirmReset; window.downloadPDF=downloadPDF; window.toggleReflect=toggleReflect; window.toggleGoals=toggleGoals; window.updGoal=updGoal; window.updIntention=updIntention; window.toggleInstructions=toggleInstructions;
+  window.upd=upd; window.showDesc=showDesc; window.setLanguage=setLanguage; window.resetAll=resetAll; window.openResetModal=openResetModal; window.closeResetModal=closeResetModal; window.confirmReset=confirmReset; window.downloadFullPDF=downloadFullPDF; window.toggleReflect=toggleReflect; window.toggleGoals=toggleGoals; window.updGoal=updGoal; window.updIntention=updIntention; window.toggleInstructions=toggleInstructions;
 </script>
 </body>
 </html>
